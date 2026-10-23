@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from src.agents.feature_flags import get_int_feature_flag
 from src.agents.llm import ChatLLM
 from src.agents.mcp_client import MCPClient
+from src.incident.api import router as incident_router
 from src.agents.tools import (
     add_to_cart,
     checkout,
@@ -41,6 +42,7 @@ class Agent:
     def __init__(self):
         self.app = FastAPI(lifespan=self.lifespan)
         self.app.post("/prompt")(self.handle_prompt)
+        self.app.include_router(incident_router)
         self.agentRecursionLimit = int(os.getenv("GRAPH_RECURSION_LIMIT", "25"))
         self.mcp_server_url = f"http://{os.getenv('MCP_ENDPOINT', '0.0.0.0')}:{os.getenv('MCP_PORT', '8011')}/mcp"
 

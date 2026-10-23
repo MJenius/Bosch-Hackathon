@@ -49,6 +49,13 @@ services:
       - OTEL_SERVICE_NAME=agent
       - FLAGD_HOST
       - FLAGD_PORT
+      - INCIDENT_LLM_ENABLED
+      - PROMETHEUS_HOST
+      - PROMETHEUS_PORT
+      - JAEGER_HOST
+      - JAEGER_UI_PORT
+      - OPENSEARCH_HOST
+      - OPENSEARCH_PORT
       - OTEL_PYTHON_SDK_INTERNAL_METRICS_ENABLED=true
     depends_on:
       otel-collector:
