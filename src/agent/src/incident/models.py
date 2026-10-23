@@ -12,7 +12,7 @@ SERVICE_NAME_PATTERN = r"^[a-z0-9][a-z0-9-]{0,62}$"
 
 MAX_WINDOW = timedelta(hours=6)
 
-Signal = Literal["metrics", "logs", "traces"]
+Signal = Literal["metrics", "logs", "traces", "changes"]
 
 
 class IncidentInput(BaseModel):

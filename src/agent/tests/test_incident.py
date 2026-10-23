@@ -166,7 +166,7 @@ def test_investigate_reports_unavailable_backends():
     failed = [c for c in r.tool_calls if c.status == "error"]
     assert failed and all(any(c.id in u for u in r.unknowns) for c in failed)
     assert any("No trace data" in u for u in r.unknowns)
-    assert r.affected_services[0] == "checkout"
+    assert "checkout" in r.affected_services
 
 
 def _call(status="ok"):
@@ -219,3 +219,61 @@ def test_build_report_with_only_failures_is_valid():
     calls = [_call("error").model_copy(update={"error": "down"})]
     r = build_report(IncidentInput(description="x"), calls, START, END, "telemetry-only", [])
     assert r.evidence == [] and any("down" in u for u in r.unknowns)
+
+
+def test_user_reported_service_not_labeled_affected_without_evidence():
+    def healthy_handler(req: httpx.Request):
+        if req.url.path == "/api/v1/query":
+            return httpx.Response(200, json=prom_vector([("cart", 0.0)]))
+        if req.url.path == "/api/v1/query_range":
+            return httpx.Response(200, json={"status": "success", "data": {"result": [{"metric": {}, "values": [[START.timestamp(), "0.0"]]}]}})
+        if req.url.path == "/_plugins/_ppl":
+            return httpx.Response(200, json={"schema": [], "datarows": []})
+        if req.url.path.startswith("/jaeger"):
+            return httpx.Response(200, json={"result": {"resourceSpans": []}})
+        return httpx.Response(404)
+
+    kit_healthy = DiagnosticToolkit(CFG, httpx.AsyncClient(transport=httpx.MockTransport(healthy_handler)))
+    inp = IncidentInput(description="Cart issue reported", service="cart")
+    r = run(investigate(inp, kit_healthy, use_llm=False, now=NOW))
+    assert "cart" not in r.affected_services
+    assert any("Reported service 'cart' showed no anomalous metrics" in u for u in r.unknowns)
+
+
+def test_metric_query_drops_infinite_and_nan_values():
+    def inf_handler(req: httpx.Request):
+        if req.url.path == "/api/v1/query":
+            return httpx.Response(200, json=prom_vector([("cart", "+Inf"), ("recommendation", "-Inf"), ("frontend", "NaN"), ("payment", 0.02)]))
+        if req.url.path == "/api/v1/query_range":
+            t = START.timestamp()
+            return httpx.Response(200, json={"status": "success", "data": {"result": [
+                {"metric": {}, "values": [[t, "+Inf"], [t + 60, "NaN"], [t + 120, "0.05"]]}]}})
+        return httpx.Response(404)
+
+    k = DiagnosticToolkit(CFG, httpx.AsyncClient(transport=httpx.MockTransport(inf_handler)))
+    call1 = run(k.query_metric("error_ratio", START, END))
+    assert call1.status == "ok"
+    assert [row["service"] for row in call1.result] == ["payment"]
+
+    call2 = run(k.query_metric_range("error_ratio", "payment", START, END))
+    assert call2.status == "ok"
+    assert call2.result["peak"]["value"] == 0.05
+
+
+def test_backend_malformed_responses_handled_gracefully():
+    def malformed_handler(req: httpx.Request):
+        if req.url.path == "/_plugins/_ppl":
+            # OpenSearch returning 200 with error structure
+            return httpx.Response(200, json={"error": {"reason": "PPL parser error"}})
+        if req.url.path.startswith("/jaeger"):
+            # Jaeger returning non-dict JSON string
+            return httpx.Response(200, json="invalid json")
+        return httpx.Response(404)
+
+    k = DiagnosticToolkit(CFG, httpx.AsyncClient(transport=httpx.MockTransport(malformed_handler)))
+    call_logs = run(k.count_logs_by_service(START, END))
+    assert call_logs.status == "error"
+    assert "PPL parser error" in call_logs.error
+
+    call_traces = run(k.search_traces("frontend", START, END))
+    assert call_traces.status == "error"

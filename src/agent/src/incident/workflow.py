@@ -91,6 +91,8 @@ async def plan_telemetry_only(inp: IncidentInput, kit: DiagnosticToolkit, start:
             if lead and lead != target:
                 notes.append(f"Follow-up: slowest spans most often in '{lead}'; querying its latency.")
                 await kit.query_metric_range("p95_latency_ms", lead, start, end, reason=f"Follow-up: p95 latency for {lead}")
+
+    await kit.get_change_history(start, end, limit=5, reason="Inspect recent repository code changes around incident window")
     return notes
 
 
@@ -284,11 +286,25 @@ def build_report(inp: IncidentInput, calls: list[ToolCall], start: datetime, end
                 findings.append(Finding(kind="hypothesis", evidence_ids=lead_ids or ids,
                                         statement=f"In {n} error trace(s) the deepest erroring span belongs to {lead}; errors may "
                                                   f"originate in or below {lead}. This is a lead, not a confirmed root cause."))
-    if inp.service:
-        affected = {inp.service: None, **affected}
+        elif c.tool == "get_change_history":
+            commits = c.result or []
+            if commits:
+                ids = []
+                for commit in commits[:3]:
+                    short_hash = commit["commit_hash"][:8]
+                    eid = add_ev(c, None, commit.get("committed_at"),
+                                 f"Recent code commit {short_hash} by {commit.get('author')}: {commit.get('message')}",
+                                 commit)
+                    ids.append(eid)
+                findings.append(Finding(kind="observation", evidence_ids=ids,
+                                        statement=f"{len(commits)} recent code change commit(s) identified in repository history (unconfirmed as live deployments)."))
+            else:
+                unknowns.append("No deployment API is available. Code repository change history showed no commits.")
     for s in [s for s in affected if s in NON_APP_SERVICES]:
         affected.pop(s)
         suspected.pop(s, None)
+    if inp.service and inp.service not in affected:
+        unknowns.append(f"Reported service '{inp.service}' showed no anomalous metrics, error logs, or error traces in the window.")
     unknowns.append("Root cause is not established at Checkpoint 1; findings describe symptoms and leads only.")
     if not any(c.signal == "traces" and c.status == "ok" for c in calls):
         unknowns.append("No trace data was retrieved, so request paths could not be inspected.")

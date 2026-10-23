@@ -4,7 +4,48 @@
 
 import json
 
+from .diagnosis_models import DiagnosisReport
 from .models import ObservationReport
+
+
+def render_diagnosis_markdown(d: DiagnosisReport) -> str:
+    out = [
+        f"# Incident Zero Diagnosis Report: {d.incident_id}",
+        f"- Schema Version: `{d.schema_version}`",
+        f"- Status: **{d.diagnosis_status.upper()}**",
+        f"- Confidence: **{d.confidence * 100:.1f}%**",
+        f"- Generated At: {d.generated_at.isoformat()}",
+        "",
+        "## Root Cause",
+        d.root_cause,
+        f"- Supporting Evidence: {', '.join(d.supporting_evidence_ids) or 'None'}",
+        f"- Contradicting Evidence: {', '.join(d.contradicting_evidence_ids) or 'None'}",
+        "",
+        "## Affected Services & Symptoms",
+        f"- Services: {', '.join(d.affected_services) or 'None'}",
+        *[f"- Symptom: {s}" for s in d.symptoms],
+        "",
+        "## Causal Chain",
+    ]
+    for step in d.causal_chain:
+        ev_str = f" _(evidence: {', '.join(step.evidence_ids)})_" if step.evidence_ids else ""
+        out.append(f"{step.step_number}. **[{step.service}]** {step.description}{ev_str}")
+
+    if d.alternative_hypotheses:
+        out += ["", "## Alternative Hypotheses Considered"]
+        for alt in d.alternative_hypotheses:
+            ev_str = f" _(evidence evaluated: {', '.join(alt.evaluated_evidence_ids)})_" if alt.evaluated_evidence_ids else ""
+            out.append(f"- **Hypothesis**: {alt.hypothesis}\n  - **Rejection Reason**: {alt.rejection_reason}{ev_str}")
+
+    if d.recommended_actions:
+        out += ["", "## Recommended Safe Actions (Non-Automated)"]
+        for act in d.recommended_actions:
+            out.append(f"- **[{act.target_service}]** {act.action} *(Safety: {act.safety_assessment})*")
+
+    if d.unknowns:
+        out += ["", "## Unknowns & Missing Evidence", *[f"- {u}" for u in d.unknowns]]
+
+    return "\n".join(out)
 
 
 def render_markdown(r: ObservationReport, show_results: bool = True) -> str:

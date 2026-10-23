@@ -1,0 +1,5144 @@
+[
+  {
+    "scenario_id": "SCENARIO-1-PAYMENT-FAILURE",
+    "flag_name": "paymentFailure",
+    "variant": "75%",
+    "expected_root_service": "payment",
+    "success": true,
+    "recovery_confirmed": true,
+    "diagnosis": {
+      "schema_version": "incident-zero/diagnosis/v1",
+      "incident_id": "SCENARIO-1-PAYMENT-FAILURE",
+      "description": "Users reporting transactions failing at checkout payment step",
+      "diagnosis_status": "confirmed",
+      "root_cause": "Payment service failed to process authorization/charge requests, causing checkout failure.",
+      "confidence": 0.88,
+      "affected_services": [
+        "checkout",
+        "payment"
+      ],
+      "symptoms": [
+        "Users reporting transactions failing at checkout payment step",
+        "Planner note: Service 'checkout' mentioned in the incident description.",
+        "Planner note: Follow-up: 1 error trace(s) show errors deepest in 'payment'; querying it.",
+        "Metric anomalies: checkout p95_latency_ms=1.5e+04ms @ 11:43:02Z. 1 error trace(s) cited, e.g. 1bbec8c6fad47a29ffac3ece598a0ebf. 1 WARN/ERROR log record(s) cited. Affected services (observed): checkout, payment. Leads to investigate (unconfirmed): payment."
+      ],
+      "causal_chain": [
+        {
+          "step_number": 1,
+          "service": "payment",
+          "description": "Service 'payment' experienced internal faults or failures, generating errors at the bottom of the call graph.",
+          "evidence_ids": [
+            "ev-4",
+            "ev-6"
+          ]
+        },
+        {
+          "step_number": 2,
+          "service": "checkout",
+          "description": "Upstream service 'checkout' encountered cascading errors or elevated latency when calling 'payment'.",
+          "evidence_ids": [
+            "ev-3"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "ev-4",
+        "ev-6"
+      ],
+      "contradicting_evidence_ids": [],
+      "alternative_hypotheses": [
+        {
+          "hypothesis": "Root cause originated in upstream 'checkout' rather than 'payment'",
+          "rejection_reason": "Distributed trace spans confirm that errors propagate upward from 'payment' as the leaf failure.",
+          "evaluated_evidence_ids": [
+            "ev-3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "search_logs (call-7) returned no data for {'service': 'checkout', 'start': '2026-10-23T11:43:02Z', 'end': '2026-10-23T11:45:02Z', 'min_severity': 13, 'limit': 20}",
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "recommended_actions": [
+        {
+          "action": "Verify payment gateway connectivity, credentials, and feature flag configuration.",
+          "target_service": "payment",
+          "safety_assessment": "Safe inspection / configuration audit.",
+          "is_automated_execution": false
+        }
+      ],
+      "generated_at": "2026-10-23T11:45:05.906335Z",
+      "raw_llm_response": null
+    },
+    "observation": {
+      "schema_version": "incident-zero/observation/v1",
+      "mode": "telemetry-only",
+      "incident_id": "SCENARIO-1-PAYMENT-FAILURE",
+      "description": "Users reporting transactions failing at checkout payment step",
+      "window_start": "2026-10-23T11:43:02.610786Z",
+      "window_end": "2026-10-23T11:45:02.610786Z",
+      "generated_at": "2026-10-23T11:45:05.900927Z",
+      "initial_symptoms": [
+        "Users reporting transactions failing at checkout payment step",
+        "Planner note: Service 'checkout' mentioned in the incident description.",
+        "Planner note: Follow-up: 1 error trace(s) show errors deepest in 'payment'; querying it."
+      ],
+      "affected_services": [
+        "checkout",
+        "payment"
+      ],
+      "suspected_services": [
+        "payment"
+      ],
+      "metric_anomalies": [
+        {
+          "service": "checkout",
+          "metric": "p95_latency_ms",
+          "value": 15000.0,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:43:02.611000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-3"
+        }
+      ],
+      "log_events": [
+        {
+          "timestamp": "2026-10-23T11:44:59.299000Z",
+          "service": "payment",
+          "severity": "warn",
+          "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+          "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+          "span_id": "809f9213fd3d5c36",
+          "evidence_id": "ev-6"
+        }
+      ],
+      "trace_refs": [
+        {
+          "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+          "root_service": "load-generator",
+          "root_operation": "user_checkout_multi",
+          "duration_ms": 5038.249,
+          "span_count": 102,
+          "error_spans": [
+            {
+              "span_id": "fa433abc6a09a95a",
+              "parent_span_id": "ed67f7d8041b692b",
+              "service": "checkout",
+              "name": "oteldemo.PaymentService/Charge",
+              "duration_ms": 257.808,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "ed67f7d8041b692b",
+              "parent_span_id": "4d8cb62d32a32b72",
+              "service": "checkout",
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "duration_ms": 2606.501,
+              "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "1f98441fd8e66386",
+              "parent_span_id": "8da4d1f2a7af0149",
+              "service": "load-generator",
+              "name": "POST",
+              "duration_ms": 4713.756,
+              "status_message": null
+            },
+            {
+              "span_id": "f8c578e3740ef6ca",
+              "parent_span_id": "c1fea81cff3754df",
+              "service": "frontend-proxy",
+              "name": "router frontend egress",
+              "duration_ms": 4707.323,
+              "status_message": null
+            },
+            {
+              "span_id": "9d02c3aac67e8b59",
+              "parent_span_id": "5fa39f59765dc27a",
+              "service": "frontend",
+              "name": "executing api route (pages) /api/checkout",
+              "duration_ms": 4707.178,
+              "status_message": null
+            },
+            {
+              "span_id": "4d8cb62d32a32b72",
+              "parent_span_id": "9d02c3aac67e8b59",
+              "service": "frontend",
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "duration_ms": 4705.866,
+              "status_message": null
+            },
+            {
+              "span_id": "5d88e840d19568e2",
+              "parent_span_id": "809f9213fd3d5c36",
+              "service": "payment",
+              "name": "charge",
+              "duration_ms": 1.724,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "809f9213fd3d5c36",
+              "parent_span_id": "fa433abc6a09a95a",
+              "service": "payment",
+              "name": "oteldemo.PaymentService/Charge",
+              "duration_ms": 4.13,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            }
+          ],
+          "deepest_error_service": "payment",
+          "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf",
+          "evidence_id": "ev-4"
+        }
+      ],
+      "findings": [
+        {
+          "kind": "observation",
+          "statement": "Services emitting ERROR+ logs in the window: otelcol-contrib=50.",
+          "evidence_ids": [
+            "ev-1"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "checkout p95_latency_ms peaked at 1.5e+04 ms at 2026-10-23T11:43:02.611000+00:00.",
+          "evidence_ids": [
+            "ev-3"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "1 of 1 sampled traces for checkout contained error spans.",
+          "evidence_ids": [
+            "ev-4"
+          ]
+        },
+        {
+          "kind": "hypothesis",
+          "statement": "In 1 error trace(s) the deepest erroring span belongs to payment; errors may originate in or below payment. This is a lead, not a confirmed root cause.",
+          "evidence_ids": [
+            "ev-4"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "1 WARN/ERROR log record(s) returned for payment; latest: 'Payment request failed. Invalid token. demo.user_context.loyalty_level=gold'.",
+          "evidence_ids": [
+            "ev-6"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "2 recent code change commit(s) identified in repository history (unconfirmed as live deployments).",
+          "evidence_ids": [
+            "ev-7",
+            "ev-8"
+          ]
+        }
+      ],
+      "unknowns": [
+        "search_logs (call-7) returned no data for {'service': 'checkout', 'start': '2026-10-23T11:43:02Z', 'end': '2026-10-23T11:45:02Z', 'min_severity': 13, 'limit': 20}",
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "symptom_summary": "Metric anomalies: checkout p95_latency_ms=1.5e+04ms @ 11:43:02Z. 1 error trace(s) cited, e.g. 1bbec8c6fad47a29ffac3ece598a0ebf. 1 WARN/ERROR log record(s) cited. Affected services (observed): checkout, payment. Leads to investigate (unconfirmed): payment.",
+      "llm_narrative": null,
+      "evidence": [
+        {
+          "id": "ev-1",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "otelcol-contrib",
+          "timestamp": null,
+          "summary": "50 log records >= severity 17 from otelcol-contrib",
+          "data": {
+            "service": "otelcol-contrib",
+            "count": 50
+          }
+        },
+        {
+          "id": "ev-2",
+          "tool_call_id": "call-5",
+          "signal": "metrics",
+          "service": "checkout",
+          "timestamp": "2026-10-23T11:43:02.611000Z",
+          "summary": "error_ratio for checkout peaked at 0 ratio at 2026-10-23T11:43:02.611000+00:00 (first 0, last 0)",
+          "data": {
+            "peak": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "step_s": 30,
+            "unit": "ratio"
+          }
+        },
+        {
+          "id": "ev-3",
+          "tool_call_id": "call-6",
+          "signal": "metrics",
+          "service": "checkout",
+          "timestamp": "2026-10-23T11:43:02.611000Z",
+          "summary": "p95_latency_ms for checkout peaked at 1.5e+04 ms at 2026-10-23T11:43:02.611000+00:00 (first 1.5e+04, last 8750)",
+          "data": {
+            "peak": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 8750.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "step_s": 30,
+            "unit": "ms"
+          }
+        },
+        {
+          "id": "ev-4",
+          "tool_call_id": "call-8",
+          "signal": "traces",
+          "service": "load-generator",
+          "timestamp": "2026-10-23T11:44:54.676022Z",
+          "summary": "trace 1bbec8c6fad47a29ffac3ece598a0ebf root load-generator/user_checkout_multi 5038.249 ms, 8 error span(s), deepest error in payment",
+          "data": {
+            "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+            "start": "2026-10-23T11:44:54.676022+00:00",
+            "duration_ms": 5038.249,
+            "root_service": "load-generator",
+            "root_operation": "user_checkout_multi",
+            "span_count": 102,
+            "services": [
+              "cart",
+              "checkout",
+              "currency",
+              "flagd",
+              "frontend",
+              "frontend-proxy",
+              "load-generator",
+              "payment",
+              "product-catalog",
+              "quote",
+              "shipping"
+            ],
+            "service_edges": [
+              [
+                "cart",
+                "flagd"
+              ],
+              [
+                "checkout",
+                "cart"
+              ],
+              [
+                "checkout",
+                "currency"
+              ],
+              [
+                "checkout",
+                "payment"
+              ],
+              [
+                "checkout",
+                "product-catalog"
+              ],
+              [
+                "checkout",
+                "shipping"
+              ],
+              [
+                "frontend",
+                "cart"
+              ],
+              [
+                "frontend",
+                "checkout"
+              ],
+              [
+                "frontend",
+                "product-catalog"
+              ],
+              [
+                "frontend-proxy",
+                "frontend"
+              ],
+              [
+                "load-generator",
+                "frontend-proxy"
+              ],
+              [
+                "shipping",
+                "quote"
+              ]
+            ],
+            "error_spans": [
+              {
+                "span_id": "fa433abc6a09a95a",
+                "parent_span_id": "ed67f7d8041b692b",
+                "service": "checkout",
+                "name": "oteldemo.PaymentService/Charge",
+                "duration_ms": 257.808,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "ed67f7d8041b692b",
+                "parent_span_id": "4d8cb62d32a32b72",
+                "service": "checkout",
+                "name": "oteldemo.CheckoutService/PlaceOrder",
+                "duration_ms": 2606.501,
+                "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "1f98441fd8e66386",
+                "parent_span_id": "8da4d1f2a7af0149",
+                "service": "load-generator",
+                "name": "POST",
+                "duration_ms": 4713.756,
+                "status_message": null
+              },
+              {
+                "span_id": "f8c578e3740ef6ca",
+                "parent_span_id": "c1fea81cff3754df",
+                "service": "frontend-proxy",
+                "name": "router frontend egress",
+                "duration_ms": 4707.323,
+                "status_message": null
+              },
+              {
+                "span_id": "9d02c3aac67e8b59",
+                "parent_span_id": "5fa39f59765dc27a",
+                "service": "frontend",
+                "name": "executing api route (pages) /api/checkout",
+                "duration_ms": 4707.178,
+                "status_message": null
+              },
+              {
+                "span_id": "4d8cb62d32a32b72",
+                "parent_span_id": "9d02c3aac67e8b59",
+                "service": "frontend",
+                "name": "oteldemo.CheckoutService/PlaceOrder",
+                "duration_ms": 4705.866,
+                "status_message": null
+              },
+              {
+                "span_id": "5d88e840d19568e2",
+                "parent_span_id": "809f9213fd3d5c36",
+                "service": "payment",
+                "name": "charge",
+                "duration_ms": 1.724,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "809f9213fd3d5c36",
+                "parent_span_id": "fa433abc6a09a95a",
+                "service": "payment",
+                "name": "oteldemo.PaymentService/Charge",
+                "duration_ms": 4.13,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              }
+            ],
+            "deepest_error_service": "payment",
+            "slowest_spans": [
+              {
+                "service": "load-generator",
+                "name": "user_checkout_multi",
+                "duration_ms": 5037.23
+              },
+              {
+                "service": "load-generator",
+                "name": "POST",
+                "duration_ms": 4713.756
+              },
+              {
+                "service": "frontend",
+                "name": "POST /api/checkout",
+                "duration_ms": 4709.271
+              },
+              {
+                "service": "frontend",
+                "name": "POST /api/checkout",
+                "duration_ms": 4708.661
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "POST",
+                "duration_ms": 4707.867
+              }
+            ],
+            "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf"
+          }
+        },
+        {
+          "id": "ev-5",
+          "tool_call_id": "call-9",
+          "signal": "metrics",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:43:02.611000Z",
+          "summary": "error_ratio for payment peaked at 0 ratio at 2026-10-23T11:43:02.611000+00:00 (first 0, last 0)",
+          "data": {
+            "peak": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "step_s": 30,
+            "unit": "ratio"
+          }
+        },
+        {
+          "id": "ev-6",
+          "tool_call_id": "call-10",
+          "signal": "logs",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:44:59.299000Z",
+          "summary": "[warn] payment: Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+          "data": {
+            "timestamp": "2026-10-23 11:44:59.299",
+            "severity": "warn",
+            "service": "payment",
+            "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+            "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+            "span_id": "809f9213fd3d5c36"
+          }
+        },
+        {
+          "id": "ev-7",
+          "tool_call_id": "call-11",
+          "signal": "changes",
+          "service": null,
+          "timestamp": "2026-10-23T15:46:03+05:30",
+          "summary": "Recent code commit 5ed4a898 by MJenius: feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+          "data": {
+            "commit_hash": "5ed4a898cb6e2ac85391fe1d8d469d73d62351e4",
+            "author": "MJenius",
+            "committed_at": "2026-10-23T15:46:03+05:30",
+            "message": "feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+            "change_type": "code_commit",
+            "deployment_confirmed": false
+          }
+        },
+        {
+          "id": "ev-8",
+          "tool_call_id": "call-11",
+          "signal": "changes",
+          "service": null,
+          "timestamp": "2026-10-22T12:20:43Z",
+          "summary": "Recent code commit ad06a6f9 by Shenoy Pratik: [ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+          "data": {
+            "commit_hash": "ad06a6f9df40abde6c1f0c58b29b92f1076a74ec",
+            "author": "Shenoy Pratik",
+            "committed_at": "2026-10-22T12:20:43+00:00",
+            "message": "[ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+            "change_type": "code_commit",
+            "deployment_confirmed": false
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": "call-1",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: server-span error ratio for all services",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": null,
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[120s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[120s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:45:02.610875Z",
+          "duration_ms": 57.0,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "frontend-proxy",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-2",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: request volume for all services",
+          "arguments": {
+            "metric": "request_rate",
+            "service": null,
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[120s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:45:02.668007Z",
+          "duration_ms": 7.2,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "frontend-proxy",
+              "value": 12.984631796512984,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 12.217888455512217,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 9.534286762009533,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "product-catalog",
+              "value": 4.367103377004367,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 4.183751708504183,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 1.0834416775010833,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 0.7167383405007166,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.7000700070007,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 0.46671333800046666,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 0.2000200020002,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 0.15001500150015,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 0.15001500150015,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 0.0,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "email",
+              "value": 0.0,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "checkout",
+              "value": 0.0,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "flagd-ui",
+              "value": 0.0,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-3",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: p95 server latency for all services",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": null,
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z"
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[120s])))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:45:02.675318Z",
+          "duration_ms": 18.6,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "product-catalog",
+              "value": 48.66666666666667,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 47.894117647058806,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 47.31451612903224,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 38.75,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 28.999999999999943,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 7.79999999999998,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 5.8875,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 3.5333333333333323,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-4",
+          "tool": "count_logs_by_service",
+          "signal": "logs",
+          "reason": "Which services emitted ERROR-or-worse logs in the window",
+          "arguments": {
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "min_severity": 17
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 11:43:02' and `@timestamp` <= '2026-10-23 11:45:02' and severity.number >= 17 | stats count() as n by resource.service.name",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:45:02.696128Z",
+          "duration_ms": 2895.7,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "otelcol-contrib",
+              "count": 50
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-5",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "Error ratio timeline for checkout (peak + timestamp)",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": "checkout",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "step_s": 30
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"checkout\",status_code=\"STATUS_CODE_ERROR\"}[300s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"checkout\"}[300s]))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:45:05.591914Z",
+          "duration_ms": 2.4,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "checkout",
+            "unit": "ratio",
+            "step_s": 30,
+            "peak": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T11:43:02.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:43:32.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:44:02.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:44:32.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:45:02.611000+00:00",
+                0.0
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-6",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "p95 latency timeline for checkout",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": "checkout",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "step_s": 30
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\",service_name=\"checkout\"}[300s])))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:45:05.594352Z",
+          "duration_ms": 2.0,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "checkout",
+            "unit": "ms",
+            "step_s": 30,
+            "peak": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 8750.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T11:43:02.611000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:43:32.611000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:44:02.611000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:44:32.611000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:45:02.611000+00:00",
+                8750.0
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-7",
+          "tool": "search_logs",
+          "signal": "logs",
+          "reason": "WARN+ logs for checkout",
+          "arguments": {
+            "service": "checkout",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "min_severity": 13,
+            "limit": 20
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 11:43:02' and `@timestamp` <= '2026-10-23 11:45:02' and severity.number >= 13 and resource.service.name = 'checkout' | sort - `@timestamp` | fields `@timestamp`, severity.text, resource.service.name, body, traceId, spanId | head 20",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:45:05.596409Z",
+          "duration_ms": 83.4,
+          "status": "empty",
+          "error": null,
+          "result": [],
+          "truncated": false
+        },
+        {
+          "id": "call-8",
+          "tool": "search_traces",
+          "signal": "traces",
+          "reason": "Error traces involving checkout",
+          "arguments": {
+            "service": "checkout",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "limit": 20,
+            "errors_only": true
+          },
+          "query": "GET http://localhost:8080/jaeger/ui/api/v3/traces?query.service_name=checkout&query.num_traces=20&query.start_time_min=2026-10-23T11:43:02Z&query.start_time_max=2026-10-23T11:45:02Z&query.attributes={\"error\":\"true\"}",
+          "backend_url": "http://localhost:8080/jaeger/ui/api/v3/traces",
+          "started_at": "2026-10-23T11:45:05.679924Z",
+          "duration_ms": 37.8,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+              "start": "2026-10-23T11:44:54.676022+00:00",
+              "duration_ms": 5038.249,
+              "root_service": "load-generator",
+              "root_operation": "user_checkout_multi",
+              "span_count": 102,
+              "services": [
+                "cart",
+                "checkout",
+                "currency",
+                "flagd",
+                "frontend",
+                "frontend-proxy",
+                "load-generator",
+                "payment",
+                "product-catalog",
+                "quote",
+                "shipping"
+              ],
+              "service_edges": [
+                [
+                  "cart",
+                  "flagd"
+                ],
+                [
+                  "checkout",
+                  "cart"
+                ],
+                [
+                  "checkout",
+                  "currency"
+                ],
+                [
+                  "checkout",
+                  "payment"
+                ],
+                [
+                  "checkout",
+                  "product-catalog"
+                ],
+                [
+                  "checkout",
+                  "shipping"
+                ],
+                [
+                  "frontend",
+                  "cart"
+                ],
+                [
+                  "frontend",
+                  "checkout"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "load-generator",
+                  "frontend-proxy"
+                ],
+                [
+                  "shipping",
+                  "quote"
+                ]
+              ],
+              "error_spans": [
+                {
+                  "span_id": "fa433abc6a09a95a",
+                  "parent_span_id": "ed67f7d8041b692b",
+                  "service": "checkout",
+                  "name": "oteldemo.PaymentService/Charge",
+                  "duration_ms": 257.808,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "ed67f7d8041b692b",
+                  "parent_span_id": "4d8cb62d32a32b72",
+                  "service": "checkout",
+                  "name": "oteldemo.CheckoutService/PlaceOrder",
+                  "duration_ms": 2606.501,
+                  "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "1f98441fd8e66386",
+                  "parent_span_id": "8da4d1f2a7af0149",
+                  "service": "load-generator",
+                  "name": "POST",
+                  "duration_ms": 4713.756,
+                  "status_message": null
+                },
+                {
+                  "span_id": "f8c578e3740ef6ca",
+                  "parent_span_id": "c1fea81cff3754df",
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 4707.323,
+                  "status_message": null
+                },
+                {
+                  "span_id": "9d02c3aac67e8b59",
+                  "parent_span_id": "5fa39f59765dc27a",
+                  "service": "frontend",
+                  "name": "executing api route (pages) /api/checkout",
+                  "duration_ms": 4707.178,
+                  "status_message": null
+                },
+                {
+                  "span_id": "4d8cb62d32a32b72",
+                  "parent_span_id": "9d02c3aac67e8b59",
+                  "service": "frontend",
+                  "name": "oteldemo.CheckoutService/PlaceOrder",
+                  "duration_ms": 4705.866,
+                  "status_message": null
+                },
+                {
+                  "span_id": "5d88e840d19568e2",
+                  "parent_span_id": "809f9213fd3d5c36",
+                  "service": "payment",
+                  "name": "charge",
+                  "duration_ms": 1.724,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "809f9213fd3d5c36",
+                  "parent_span_id": "fa433abc6a09a95a",
+                  "service": "payment",
+                  "name": "oteldemo.PaymentService/Charge",
+                  "duration_ms": 4.13,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                }
+              ],
+              "deepest_error_service": "payment",
+              "slowest_spans": [
+                {
+                  "service": "load-generator",
+                  "name": "user_checkout_multi",
+                  "duration_ms": 5037.23
+                },
+                {
+                  "service": "load-generator",
+                  "name": "POST",
+                  "duration_ms": 4713.756
+                },
+                {
+                  "service": "frontend",
+                  "name": "POST /api/checkout",
+                  "duration_ms": 4709.271
+                },
+                {
+                  "service": "frontend",
+                  "name": "POST /api/checkout",
+                  "duration_ms": 4708.661
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "POST",
+                  "duration_ms": 4707.867
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-9",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "Follow-up: error ratio timeline for payment",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": "payment",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "step_s": 30
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"payment\",status_code=\"STATUS_CODE_ERROR\"}[300s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"payment\"}[300s]))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:45:05.717995Z",
+          "duration_ms": 3.9,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "payment",
+            "unit": "ratio",
+            "step_s": 30,
+            "peak": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:43:02.611000+00:00"
+            },
+            "last": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:45:02.611000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T11:43:02.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:43:32.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:44:02.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:44:32.611000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:45:02.611000+00:00",
+                0.0
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-10",
+          "tool": "search_logs",
+          "signal": "logs",
+          "reason": "Follow-up: WARN+ logs for payment",
+          "arguments": {
+            "service": "payment",
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "min_severity": 13,
+            "limit": 20
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 11:43:02' and `@timestamp` <= '2026-10-23 11:45:02' and severity.number >= 13 and resource.service.name = 'payment' | sort - `@timestamp` | fields `@timestamp`, severity.text, resource.service.name, body, traceId, spanId | head 20",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:45:05.721973Z",
+          "duration_ms": 103.6,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "timestamp": "2026-10-23 11:44:59.299",
+              "severity": "warn",
+              "service": "payment",
+              "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+              "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+              "span_id": "809f9213fd3d5c36"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-11",
+          "tool": "get_change_history",
+          "signal": "changes",
+          "reason": "Inspect recent repository code changes around incident window",
+          "arguments": {
+            "start": "2026-10-23T11:43:02Z",
+            "end": "2026-10-23T11:45:02Z",
+            "limit": 5
+          },
+          "query": "git log -n5 --pretty=format:%H|%an|%ad|%s --date=iso-strict",
+          "backend_url": "file://C:\\Users\\mjeni\\OneDrive\\Desktop\\Job Activities\\Bosch-Hackathon\\src\\agent",
+          "started_at": "2026-10-23T11:45:05.825691Z",
+          "duration_ms": 74.0,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "commit_hash": "5ed4a898cb6e2ac85391fe1d8d469d73d62351e4",
+              "author": "MJenius",
+              "committed_at": "2026-10-23T15:46:03+05:30",
+              "message": "feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+              "change_type": "code_commit",
+              "deployment_confirmed": false
+            },
+            {
+              "commit_hash": "ad06a6f9df40abde6c1f0c58b29b92f1076a74ec",
+              "author": "Shenoy Pratik",
+              "committed_at": "2026-10-22T12:20:43+00:00",
+              "message": "[ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+              "change_type": "code_commit",
+              "deployment_confirmed": false
+            }
+          ],
+          "truncated": false
+        }
+      ]
+    },
+    "schema_valid": true,
+    "correct_root": true,
+    "confidence": 0.88
+  },
+  {
+    "scenario_id": "SCENARIO-2-PAYMENT-UNREACHABLE",
+    "flag_name": "paymentUnreachable",
+    "variant": "on",
+    "expected_root_service": "payment",
+    "success": true,
+    "recovery_confirmed": true,
+    "diagnosis": {
+      "schema_version": "incident-zero/diagnosis/v1",
+      "incident_id": "SCENARIO-2-PAYMENT-UNREACHABLE",
+      "description": "Payment service gateway unreachable during order processing",
+      "diagnosis_status": "confirmed",
+      "root_cause": "Payment service failed to process authorization/charge requests, causing checkout failure.",
+      "confidence": 0.88,
+      "affected_services": [
+        "checkout",
+        "payment"
+      ],
+      "symptoms": [
+        "Payment service gateway unreachable during order processing",
+        "Planner note: Service 'payment' mentioned in the incident description.",
+        "Metric anomalies: checkout error_ratio=0.2 @ 11:46:25Z; payment error_ratio=0.2 @ 11:46:25Z; checkout p95_latency_ms=9.38e+03ms @ 11:46:25Z; payment error_ratio=0.111 @ 11:45:55Z. 1 error trace(s) cited, e.g. 1bbec8c6fad47a29ffac3ece598a0ebf. 1 WARN/ERROR log record(s) cited. Affected services (observed): checkout, payment. Leads to investigate (unconfirmed): payment."
+      ],
+      "causal_chain": [
+        {
+          "step_number": 1,
+          "service": "payment",
+          "description": "Service 'payment' experienced internal faults or failures, generating errors at the bottom of the call graph.",
+          "evidence_ids": [
+            "ev-9",
+            "ev-2"
+          ]
+        },
+        {
+          "step_number": 2,
+          "service": "checkout",
+          "description": "Upstream service 'checkout' encountered cascading errors or elevated latency when calling 'payment'.",
+          "evidence_ids": [
+            "ev-1",
+            "ev-3"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "ev-9",
+        "ev-2",
+        "ev-6",
+        "ev-8"
+      ],
+      "contradicting_evidence_ids": [],
+      "alternative_hypotheses": [
+        {
+          "hypothesis": "Root cause originated in upstream 'checkout' rather than 'payment'",
+          "rejection_reason": "Distributed trace spans confirm that errors propagate upward from 'payment' as the leaf failure.",
+          "evaluated_evidence_ids": [
+            "ev-1",
+            "ev-3"
+          ]
+        }
+      ],
+      "unknowns": [
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "recommended_actions": [
+        {
+          "action": "Verify payment gateway connectivity, credentials, and feature flag configuration.",
+          "target_service": "payment",
+          "safety_assessment": "Safe inspection / configuration audit.",
+          "is_automated_execution": false
+        }
+      ],
+      "generated_at": "2026-10-23T11:46:26.641908Z",
+      "raw_llm_response": null
+    },
+    "observation": {
+      "schema_version": "incident-zero/observation/v1",
+      "mode": "telemetry-only",
+      "incident_id": "SCENARIO-2-PAYMENT-UNREACHABLE",
+      "description": "Payment service gateway unreachable during order processing",
+      "window_start": "2026-10-23T11:44:25.345479Z",
+      "window_end": "2026-10-23T11:46:25.345479Z",
+      "generated_at": "2026-10-23T11:46:26.639627Z",
+      "initial_symptoms": [
+        "Payment service gateway unreachable during order processing",
+        "Planner note: Service 'payment' mentioned in the incident description."
+      ],
+      "affected_services": [
+        "checkout",
+        "payment"
+      ],
+      "suspected_services": [
+        "payment"
+      ],
+      "metric_anomalies": [
+        {
+          "service": "checkout",
+          "metric": "error_ratio",
+          "value": 0.2,
+          "unit": "ratio",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "threshold": 0.05,
+          "evidence_id": "ev-1"
+        },
+        {
+          "service": "payment",
+          "metric": "error_ratio",
+          "value": 0.2,
+          "unit": "ratio",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "threshold": 0.05,
+          "evidence_id": "ev-2"
+        },
+        {
+          "service": "checkout",
+          "metric": "p95_latency_ms",
+          "value": 9375.0,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-3"
+        },
+        {
+          "service": "payment",
+          "metric": "error_ratio",
+          "value": 0.1111111111111111,
+          "unit": "ratio",
+          "timestamp": "2026-10-23T11:45:55.345000Z",
+          "threshold": 0.05,
+          "evidence_id": "ev-6"
+        }
+      ],
+      "log_events": [
+        {
+          "timestamp": "2026-10-23T11:44:59.299000Z",
+          "service": "payment",
+          "severity": "warn",
+          "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+          "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+          "span_id": "809f9213fd3d5c36",
+          "evidence_id": "ev-8"
+        }
+      ],
+      "trace_refs": [
+        {
+          "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+          "root_service": "load-generator",
+          "root_operation": "user_checkout_multi",
+          "duration_ms": 5038.249,
+          "span_count": 102,
+          "error_spans": [
+            {
+              "span_id": "fa433abc6a09a95a",
+              "parent_span_id": "ed67f7d8041b692b",
+              "service": "checkout",
+              "name": "oteldemo.PaymentService/Charge",
+              "duration_ms": 257.808,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "ed67f7d8041b692b",
+              "parent_span_id": "4d8cb62d32a32b72",
+              "service": "checkout",
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "duration_ms": 2606.501,
+              "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "1f98441fd8e66386",
+              "parent_span_id": "8da4d1f2a7af0149",
+              "service": "load-generator",
+              "name": "POST",
+              "duration_ms": 4713.756,
+              "status_message": null
+            },
+            {
+              "span_id": "f8c578e3740ef6ca",
+              "parent_span_id": "c1fea81cff3754df",
+              "service": "frontend-proxy",
+              "name": "router frontend egress",
+              "duration_ms": 4707.323,
+              "status_message": null
+            },
+            {
+              "span_id": "9d02c3aac67e8b59",
+              "parent_span_id": "5fa39f59765dc27a",
+              "service": "frontend",
+              "name": "executing api route (pages) /api/checkout",
+              "duration_ms": 4707.178,
+              "status_message": null
+            },
+            {
+              "span_id": "4d8cb62d32a32b72",
+              "parent_span_id": "9d02c3aac67e8b59",
+              "service": "frontend",
+              "name": "oteldemo.CheckoutService/PlaceOrder",
+              "duration_ms": 4705.866,
+              "status_message": null
+            },
+            {
+              "span_id": "5d88e840d19568e2",
+              "parent_span_id": "809f9213fd3d5c36",
+              "service": "payment",
+              "name": "charge",
+              "duration_ms": 1.724,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            },
+            {
+              "span_id": "809f9213fd3d5c36",
+              "parent_span_id": "fa433abc6a09a95a",
+              "service": "payment",
+              "name": "oteldemo.PaymentService/Charge",
+              "duration_ms": 4.13,
+              "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+            }
+          ],
+          "deepest_error_service": "payment",
+          "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf",
+          "evidence_id": "ev-9"
+        }
+      ],
+      "findings": [
+        {
+          "kind": "observation",
+          "statement": "checkout error_ratio was 0.2 ratio over the window (above threshold 0.05).",
+          "evidence_ids": [
+            "ev-1"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "payment error_ratio was 0.2 ratio over the window (above threshold 0.05).",
+          "evidence_ids": [
+            "ev-2"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "checkout p95_latency_ms was 9375 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-3"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "Services emitting ERROR+ logs in the window: otelcol-contrib=47, frontend=1.",
+          "evidence_ids": [
+            "ev-4",
+            "ev-5"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "payment error_ratio peaked at 0.1111 ratio at 2026-10-23T11:45:55.345000+00:00.",
+          "evidence_ids": [
+            "ev-6"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "1 WARN/ERROR log record(s) returned for payment; latest: 'Payment request failed. Invalid token. demo.user_context.loyalty_level=gold'.",
+          "evidence_ids": [
+            "ev-8"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "1 of 1 sampled traces for payment contained error spans.",
+          "evidence_ids": [
+            "ev-9"
+          ]
+        },
+        {
+          "kind": "hypothesis",
+          "statement": "In 1 error trace(s) the deepest erroring span belongs to payment; errors may originate in or below payment. This is a lead, not a confirmed root cause.",
+          "evidence_ids": [
+            "ev-9"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "2 recent code change commit(s) identified in repository history (unconfirmed as live deployments).",
+          "evidence_ids": [
+            "ev-10",
+            "ev-11"
+          ]
+        }
+      ],
+      "unknowns": [
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "symptom_summary": "Metric anomalies: checkout error_ratio=0.2 @ 11:46:25Z; payment error_ratio=0.2 @ 11:46:25Z; checkout p95_latency_ms=9.38e+03ms @ 11:46:25Z; payment error_ratio=0.111 @ 11:45:55Z. 1 error trace(s) cited, e.g. 1bbec8c6fad47a29ffac3ece598a0ebf. 1 WARN/ERROR log record(s) cited. Affected services (observed): checkout, payment. Leads to investigate (unconfirmed): payment.",
+      "llm_narrative": null,
+      "evidence": [
+        {
+          "id": "ev-1",
+          "tool_call_id": "call-1",
+          "signal": "metrics",
+          "service": "checkout",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "summary": "error_ratio for checkout = 0.2 ratio (threshold 0.05)",
+          "data": {
+            "service": "checkout",
+            "value": 0.2,
+            "unit": "ratio",
+            "timestamp": "2026-10-23T11:46:25.345000+00:00"
+          }
+        },
+        {
+          "id": "ev-2",
+          "tool_call_id": "call-1",
+          "signal": "metrics",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "summary": "error_ratio for payment = 0.2 ratio (threshold 0.05)",
+          "data": {
+            "service": "payment",
+            "value": 0.2,
+            "unit": "ratio",
+            "timestamp": "2026-10-23T11:46:25.345000+00:00"
+          }
+        },
+        {
+          "id": "ev-3",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "checkout",
+          "timestamp": "2026-10-23T11:46:25.345000Z",
+          "summary": "p95_latency_ms for checkout = 9375 ms (threshold 1000.0)",
+          "data": {
+            "service": "checkout",
+            "value": 9375.0,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:46:25.345000+00:00"
+          }
+        },
+        {
+          "id": "ev-4",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "otelcol-contrib",
+          "timestamp": null,
+          "summary": "47 log records >= severity 17 from otelcol-contrib",
+          "data": {
+            "service": "otelcol-contrib",
+            "count": 47
+          }
+        },
+        {
+          "id": "ev-5",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "frontend",
+          "timestamp": null,
+          "summary": "1 log records >= severity 17 from frontend",
+          "data": {
+            "service": "frontend",
+            "count": 1
+          }
+        },
+        {
+          "id": "ev-6",
+          "tool_call_id": "call-5",
+          "signal": "metrics",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:45:55.345000Z",
+          "summary": "error_ratio for payment peaked at 0.1111 ratio at 2026-10-23T11:45:55.345000+00:00 (first 0, last 0.1111)",
+          "data": {
+            "peak": {
+              "value": 0.1111111111111111,
+              "timestamp": "2026-10-23T11:45:55.345000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:44:25.345000+00:00"
+            },
+            "last": {
+              "value": 0.1111111111111111,
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            "step_s": 30,
+            "unit": "ratio"
+          }
+        },
+        {
+          "id": "ev-7",
+          "tool_call_id": "call-6",
+          "signal": "metrics",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:45:55.345000Z",
+          "summary": "p95_latency_ms for payment peaked at 41 ms at 2026-10-23T11:45:55.345000+00:00 (first 3.7, last 41)",
+          "data": {
+            "peak": {
+              "value": 40.99999999999999,
+              "timestamp": "2026-10-23T11:45:55.345000+00:00"
+            },
+            "first": {
+              "value": 3.6999999999999993,
+              "timestamp": "2026-10-23T11:44:25.345000+00:00"
+            },
+            "last": {
+              "value": 40.99999999999999,
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            "step_s": 30,
+            "unit": "ms"
+          }
+        },
+        {
+          "id": "ev-8",
+          "tool_call_id": "call-7",
+          "signal": "logs",
+          "service": "payment",
+          "timestamp": "2026-10-23T11:44:59.299000Z",
+          "summary": "[warn] payment: Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+          "data": {
+            "timestamp": "2026-10-23 11:44:59.299",
+            "severity": "warn",
+            "service": "payment",
+            "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+            "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+            "span_id": "809f9213fd3d5c36"
+          }
+        },
+        {
+          "id": "ev-9",
+          "tool_call_id": "call-8",
+          "signal": "traces",
+          "service": "load-generator",
+          "timestamp": "2026-10-23T11:44:54.676022Z",
+          "summary": "trace 1bbec8c6fad47a29ffac3ece598a0ebf root load-generator/user_checkout_multi 5038.249 ms, 8 error span(s), deepest error in payment",
+          "data": {
+            "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+            "start": "2026-10-23T11:44:54.676022+00:00",
+            "duration_ms": 5038.249,
+            "root_service": "load-generator",
+            "root_operation": "user_checkout_multi",
+            "span_count": 102,
+            "services": [
+              "cart",
+              "checkout",
+              "currency",
+              "flagd",
+              "frontend",
+              "frontend-proxy",
+              "load-generator",
+              "payment",
+              "product-catalog",
+              "quote",
+              "shipping"
+            ],
+            "service_edges": [
+              [
+                "cart",
+                "flagd"
+              ],
+              [
+                "checkout",
+                "cart"
+              ],
+              [
+                "checkout",
+                "currency"
+              ],
+              [
+                "checkout",
+                "payment"
+              ],
+              [
+                "checkout",
+                "product-catalog"
+              ],
+              [
+                "checkout",
+                "shipping"
+              ],
+              [
+                "frontend",
+                "cart"
+              ],
+              [
+                "frontend",
+                "checkout"
+              ],
+              [
+                "frontend",
+                "product-catalog"
+              ],
+              [
+                "frontend-proxy",
+                "frontend"
+              ],
+              [
+                "load-generator",
+                "frontend-proxy"
+              ],
+              [
+                "shipping",
+                "quote"
+              ]
+            ],
+            "error_spans": [
+              {
+                "span_id": "fa433abc6a09a95a",
+                "parent_span_id": "ed67f7d8041b692b",
+                "service": "checkout",
+                "name": "oteldemo.PaymentService/Charge",
+                "duration_ms": 257.808,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "ed67f7d8041b692b",
+                "parent_span_id": "4d8cb62d32a32b72",
+                "service": "checkout",
+                "name": "oteldemo.CheckoutService/PlaceOrder",
+                "duration_ms": 2606.501,
+                "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "1f98441fd8e66386",
+                "parent_span_id": "8da4d1f2a7af0149",
+                "service": "load-generator",
+                "name": "POST",
+                "duration_ms": 4713.756,
+                "status_message": null
+              },
+              {
+                "span_id": "f8c578e3740ef6ca",
+                "parent_span_id": "c1fea81cff3754df",
+                "service": "frontend-proxy",
+                "name": "router frontend egress",
+                "duration_ms": 4707.323,
+                "status_message": null
+              },
+              {
+                "span_id": "9d02c3aac67e8b59",
+                "parent_span_id": "5fa39f59765dc27a",
+                "service": "frontend",
+                "name": "executing api route (pages) /api/checkout",
+                "duration_ms": 4707.178,
+                "status_message": null
+              },
+              {
+                "span_id": "4d8cb62d32a32b72",
+                "parent_span_id": "9d02c3aac67e8b59",
+                "service": "frontend",
+                "name": "oteldemo.CheckoutService/PlaceOrder",
+                "duration_ms": 4705.866,
+                "status_message": null
+              },
+              {
+                "span_id": "5d88e840d19568e2",
+                "parent_span_id": "809f9213fd3d5c36",
+                "service": "payment",
+                "name": "charge",
+                "duration_ms": 1.724,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              },
+              {
+                "span_id": "809f9213fd3d5c36",
+                "parent_span_id": "fa433abc6a09a95a",
+                "service": "payment",
+                "name": "oteldemo.PaymentService/Charge",
+                "duration_ms": 4.13,
+                "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+              }
+            ],
+            "deepest_error_service": "payment",
+            "slowest_spans": [
+              {
+                "service": "load-generator",
+                "name": "user_checkout_multi",
+                "duration_ms": 5037.23
+              },
+              {
+                "service": "load-generator",
+                "name": "POST",
+                "duration_ms": 4713.756
+              },
+              {
+                "service": "frontend",
+                "name": "POST /api/checkout",
+                "duration_ms": 4709.271
+              },
+              {
+                "service": "frontend",
+                "name": "POST /api/checkout",
+                "duration_ms": 4708.661
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "POST",
+                "duration_ms": 4707.867
+              }
+            ],
+            "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf"
+          }
+        },
+        {
+          "id": "ev-10",
+          "tool_call_id": "call-9",
+          "signal": "changes",
+          "service": null,
+          "timestamp": "2026-10-23T15:46:03+05:30",
+          "summary": "Recent code commit 5ed4a898 by MJenius: feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+          "data": {
+            "commit_hash": "5ed4a898cb6e2ac85391fe1d8d469d73d62351e4",
+            "author": "MJenius",
+            "committed_at": "2026-10-23T15:46:03+05:30",
+            "message": "feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+            "change_type": "code_commit",
+            "deployment_confirmed": false
+          }
+        },
+        {
+          "id": "ev-11",
+          "tool_call_id": "call-9",
+          "signal": "changes",
+          "service": null,
+          "timestamp": "2026-10-22T12:20:43Z",
+          "summary": "Recent code commit ad06a6f9 by Shenoy Pratik: [ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+          "data": {
+            "commit_hash": "ad06a6f9df40abde6c1f0c58b29b92f1076a74ec",
+            "author": "Shenoy Pratik",
+            "committed_at": "2026-10-22T12:20:43+00:00",
+            "message": "[ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+            "change_type": "code_commit",
+            "deployment_confirmed": false
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": "call-1",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: server-span error ratio for all services",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": null,
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[120s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[120s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:46:25.345549Z",
+          "duration_ms": 14.1,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "checkout",
+              "value": 0.2,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 0.2,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 0.001547987616099071,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-2",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: request volume for all services",
+          "arguments": {
+            "metric": "request_rate",
+            "service": null,
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[120s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:46:25.359737Z",
+          "duration_ms": 5.4,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "frontend-proxy",
+              "value": 11.617441162744184,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 10.9173944929662,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 10.767384492299488,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "product-catalog",
+              "value": 4.566971131408761,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 2.883525568371225,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 1.5334355623708247,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 1.0500700046669778,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.716714447629842,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 0.3333555570371358,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 0.23334888992599506,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 0.1833455563704247,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 0.1666777785185679,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 0.08333888925928395,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "checkout",
+              "value": 0.08333888925928395,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "email",
+              "value": 0.05000333355557038,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "flagd-ui",
+              "value": 0.0,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-3",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: p95 server latency for all services",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": null,
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z"
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[120s])))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:46:25.365297Z",
+          "duration_ms": 13.8,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "checkout",
+              "value": 9375.0,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "email",
+              "value": 370.0,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 154.3333333333332,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 147.99999999999977,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "product-catalog",
+              "value": 142.9411764705882,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 129.99999999999994,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 101.56250000000007,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 44.99999999999999,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 41.72972972972974,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 37.7142857142857,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 6.0,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 3.4999999999999996,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-4",
+          "tool": "count_logs_by_service",
+          "signal": "logs",
+          "reason": "Which services emitted ERROR-or-worse logs in the window",
+          "arguments": {
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "min_severity": 17
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 11:44:25' and `@timestamp` <= '2026-10-23 11:46:25' and severity.number >= 17 | stats count() as n by resource.service.name",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:46:25.379352Z",
+          "duration_ms": 1061.2,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "otelcol-contrib",
+              "count": 47
+            },
+            {
+              "service": "frontend",
+              "count": 1
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-5",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "Error ratio timeline for payment (peak + timestamp)",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": "payment",
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "step_s": 30
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"payment\",status_code=\"STATUS_CODE_ERROR\"}[300s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"payment\"}[300s]))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:46:26.440701Z",
+          "duration_ms": 5.4,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "payment",
+            "unit": "ratio",
+            "step_s": 30,
+            "peak": {
+              "value": 0.1111111111111111,
+              "timestamp": "2026-10-23T11:45:55.345000+00:00"
+            },
+            "first": {
+              "value": 0.0,
+              "timestamp": "2026-10-23T11:44:25.345000+00:00"
+            },
+            "last": {
+              "value": 0.1111111111111111,
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T11:44:25.345000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:44:55.345000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:45:25.345000+00:00",
+                0.0
+              ],
+              [
+                "2026-10-23T11:45:55.345000+00:00",
+                0.1111111111111111
+              ],
+              [
+                "2026-10-23T11:46:25.345000+00:00",
+                0.1111111111111111
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-6",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "p95 latency timeline for payment",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": "payment",
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "step_s": 30
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\",service_name=\"payment\"}[300s])))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:46:26.446244Z",
+          "duration_ms": 4.8,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "payment",
+            "unit": "ms",
+            "step_s": 30,
+            "peak": {
+              "value": 40.99999999999999,
+              "timestamp": "2026-10-23T11:45:55.345000+00:00"
+            },
+            "first": {
+              "value": 3.6999999999999993,
+              "timestamp": "2026-10-23T11:44:25.345000+00:00"
+            },
+            "last": {
+              "value": 40.99999999999999,
+              "timestamp": "2026-10-23T11:46:25.345000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T11:44:25.345000+00:00",
+                3.6999999999999993
+              ],
+              [
+                "2026-10-23T11:44:55.345000+00:00",
+                3.75
+              ],
+              [
+                "2026-10-23T11:45:25.345000+00:00",
+                3.75
+              ],
+              [
+                "2026-10-23T11:45:55.345000+00:00",
+                40.99999999999999
+              ],
+              [
+                "2026-10-23T11:46:25.345000+00:00",
+                40.99999999999999
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-7",
+          "tool": "search_logs",
+          "signal": "logs",
+          "reason": "WARN+ logs for payment",
+          "arguments": {
+            "service": "payment",
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "min_severity": 13,
+            "limit": 20
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 11:44:25' and `@timestamp` <= '2026-10-23 11:46:25' and severity.number >= 13 and resource.service.name = 'payment' | sort - `@timestamp` | fields `@timestamp`, severity.text, resource.service.name, body, traceId, spanId | head 20",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:46:26.451148Z",
+          "duration_ms": 77.0,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "timestamp": "2026-10-23 11:44:59.299",
+              "severity": "warn",
+              "service": "payment",
+              "message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold",
+              "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+              "span_id": "809f9213fd3d5c36"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-8",
+          "tool": "search_traces",
+          "signal": "traces",
+          "reason": "Error traces involving payment",
+          "arguments": {
+            "service": "payment",
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "limit": 20,
+            "errors_only": true
+          },
+          "query": "GET http://localhost:8080/jaeger/ui/api/v3/traces?query.service_name=payment&query.num_traces=20&query.start_time_min=2026-10-23T11:44:25Z&query.start_time_max=2026-10-23T11:46:25Z&query.attributes={\"error\":\"true\"}",
+          "backend_url": "http://localhost:8080/jaeger/ui/api/v3/traces",
+          "started_at": "2026-10-23T11:46:26.528222Z",
+          "duration_ms": 32.4,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "trace_id": "1bbec8c6fad47a29ffac3ece598a0ebf",
+              "start": "2026-10-23T11:44:54.676022+00:00",
+              "duration_ms": 5038.249,
+              "root_service": "load-generator",
+              "root_operation": "user_checkout_multi",
+              "span_count": 102,
+              "services": [
+                "cart",
+                "checkout",
+                "currency",
+                "flagd",
+                "frontend",
+                "frontend-proxy",
+                "load-generator",
+                "payment",
+                "product-catalog",
+                "quote",
+                "shipping"
+              ],
+              "service_edges": [
+                [
+                  "cart",
+                  "flagd"
+                ],
+                [
+                  "checkout",
+                  "cart"
+                ],
+                [
+                  "checkout",
+                  "currency"
+                ],
+                [
+                  "checkout",
+                  "payment"
+                ],
+                [
+                  "checkout",
+                  "product-catalog"
+                ],
+                [
+                  "checkout",
+                  "shipping"
+                ],
+                [
+                  "frontend",
+                  "cart"
+                ],
+                [
+                  "frontend",
+                  "checkout"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "load-generator",
+                  "frontend-proxy"
+                ],
+                [
+                  "shipping",
+                  "quote"
+                ]
+              ],
+              "error_spans": [
+                {
+                  "span_id": "fa433abc6a09a95a",
+                  "parent_span_id": "ed67f7d8041b692b",
+                  "service": "checkout",
+                  "name": "oteldemo.PaymentService/Charge",
+                  "duration_ms": 257.808,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "ed67f7d8041b692b",
+                  "parent_span_id": "4d8cb62d32a32b72",
+                  "service": "checkout",
+                  "name": "oteldemo.CheckoutService/PlaceOrder",
+                  "duration_ms": 2606.501,
+                  "status_message": "failed to charge card: could not charge the card: rpc error: code = Unknown desc = Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "1f98441fd8e66386",
+                  "parent_span_id": "8da4d1f2a7af0149",
+                  "service": "load-generator",
+                  "name": "POST",
+                  "duration_ms": 4713.756,
+                  "status_message": null
+                },
+                {
+                  "span_id": "f8c578e3740ef6ca",
+                  "parent_span_id": "c1fea81cff3754df",
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 4707.323,
+                  "status_message": null
+                },
+                {
+                  "span_id": "9d02c3aac67e8b59",
+                  "parent_span_id": "5fa39f59765dc27a",
+                  "service": "frontend",
+                  "name": "executing api route (pages) /api/checkout",
+                  "duration_ms": 4707.178,
+                  "status_message": null
+                },
+                {
+                  "span_id": "4d8cb62d32a32b72",
+                  "parent_span_id": "9d02c3aac67e8b59",
+                  "service": "frontend",
+                  "name": "oteldemo.CheckoutService/PlaceOrder",
+                  "duration_ms": 4705.866,
+                  "status_message": null
+                },
+                {
+                  "span_id": "5d88e840d19568e2",
+                  "parent_span_id": "809f9213fd3d5c36",
+                  "service": "payment",
+                  "name": "charge",
+                  "duration_ms": 1.724,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                },
+                {
+                  "span_id": "809f9213fd3d5c36",
+                  "parent_span_id": "fa433abc6a09a95a",
+                  "service": "payment",
+                  "name": "oteldemo.PaymentService/Charge",
+                  "duration_ms": 4.13,
+                  "status_message": "Payment request failed. Invalid token. demo.user_context.loyalty_level=gold"
+                }
+              ],
+              "deepest_error_service": "payment",
+              "slowest_spans": [
+                {
+                  "service": "load-generator",
+                  "name": "user_checkout_multi",
+                  "duration_ms": 5037.23
+                },
+                {
+                  "service": "load-generator",
+                  "name": "POST",
+                  "duration_ms": 4713.756
+                },
+                {
+                  "service": "frontend",
+                  "name": "POST /api/checkout",
+                  "duration_ms": 4709.271
+                },
+                {
+                  "service": "frontend",
+                  "name": "POST /api/checkout",
+                  "duration_ms": 4708.661
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "POST",
+                  "duration_ms": 4707.867
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1bbec8c6fad47a29ffac3ece598a0ebf"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-9",
+          "tool": "get_change_history",
+          "signal": "changes",
+          "reason": "Inspect recent repository code changes around incident window",
+          "arguments": {
+            "start": "2026-10-23T11:44:25Z",
+            "end": "2026-10-23T11:46:25Z",
+            "limit": 5
+          },
+          "query": "git log -n5 --pretty=format:%H|%an|%ad|%s --date=iso-strict",
+          "backend_url": "file://C:\\Users\\mjeni\\OneDrive\\Desktop\\Job Activities\\Bosch-Hackathon\\src\\agent",
+          "started_at": "2026-10-23T11:46:26.560688Z",
+          "duration_ms": 78.4,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "commit_hash": "5ed4a898cb6e2ac85391fe1d8d469d73d62351e4",
+              "author": "MJenius",
+              "committed_at": "2026-10-23T15:46:03+05:30",
+              "message": "feat(incident): implement Checkpoint 1 - Eyes telemetry observation workflow",
+              "change_type": "code_commit",
+              "deployment_confirmed": false
+            },
+            {
+              "commit_hash": "ad06a6f9df40abde6c1f0c58b29b92f1076a74ec",
+              "author": "Shenoy Pratik",
+              "committed_at": "2026-10-22T12:20:43+00:00",
+              "message": "[ci] Require a changelog fragment on PRs unless Skip Changelog is set (#4153)",
+              "change_type": "code_commit",
+              "deployment_confirmed": false
+            }
+          ],
+          "truncated": false
+        }
+      ]
+    },
+    "schema_valid": true,
+    "correct_root": true,
+    "confidence": 0.88
+  },
+  {
+    "scenario_id": "SCENARIO-3-PRODUCT-CATALOG-RESOURCE",
+    "flag_name": "resource_limits (20M memory limit -> 128M / GOMEMLIMIT=96MiB)",
+    "variant": "historical_pre_fix",
+    "expected_root_service": "product-catalog",
+    "success": true,
+    "recovery_confirmed": true,
+    "diagnosis": {
+      "schema_version": "incident-zero/diagnosis/v1",
+      "incident_id": "INC-20261023-002",
+      "description": "Product catalog health checks are timing out, CPU usage is elevated, and storefront recommendation requests are returning 504 Gateway Timeout. Investigate metrics, traces, and logs to identify the likely cause.",
+      "diagnosis_status": "probable",
+      "root_cause": "Product catalog database lock contention / elevated query latency causing storefront degradation.",
+      "confidence": 0.72,
+      "affected_services": [
+        "recommendation",
+        "checkout",
+        "frontend",
+        "product-catalog",
+        "frontend-proxy"
+      ],
+      "symptoms": [
+        "Product catalog health checks are timing out, CPU usage is elevated, and storefront recommendation requests are returning 504 Gateway Timeout. Investigate metrics, traces, and logs to identify the likely cause.",
+        "Reported service: product-catalog",
+        "Planner note: Service 'product-catalog' supplied with the incident.",
+        "Planner note: No error traces found for 'product-catalog'; sampling recent traces instead.",
+        "Metric anomalies: recommendation p95_latency_ms=1.5e+04ms @ 11:13:58Z; checkout p95_latency_ms=1.5e+04ms @ 11:13:58Z; frontend p95_latency_ms=1.44e+04ms @ 11:13:58Z; product-catalog p95_latency_ms=1.34e+04ms @ 11:13:58Z; frontend-proxy p95_latency_ms=4.94e+03ms @ 11:13:58Z. Affected services (observed): recommendation, checkout, frontend, product-catalog, frontend-proxy."
+      ],
+      "causal_chain": [
+        {
+          "step_number": 1,
+          "service": "product-catalog",
+          "description": "Service 'product-catalog' experienced internal faults or failures, generating errors at the bottom of the call graph.",
+          "evidence_ids": [
+            "ev-4",
+            "ev-9"
+          ]
+        },
+        {
+          "step_number": 2,
+          "service": "recommendation",
+          "description": "Upstream service 'recommendation' encountered cascading errors or elevated latency when calling 'product-catalog'.",
+          "evidence_ids": [
+            "ev-1"
+          ]
+        },
+        {
+          "step_number": 3,
+          "service": "checkout",
+          "description": "Upstream service 'checkout' encountered cascading errors or elevated latency when calling 'product-catalog'.",
+          "evidence_ids": [
+            "ev-2"
+          ]
+        },
+        {
+          "step_number": 4,
+          "service": "frontend",
+          "description": "Upstream service 'frontend' encountered cascading errors or elevated latency when calling 'product-catalog'.",
+          "evidence_ids": [
+            "ev-3"
+          ]
+        },
+        {
+          "step_number": 5,
+          "service": "frontend-proxy",
+          "description": "Upstream service 'frontend-proxy' encountered cascading errors or elevated latency when calling 'product-catalog'.",
+          "evidence_ids": [
+            "ev-5"
+          ]
+        }
+      ],
+      "supporting_evidence_ids": [
+        "ev-4",
+        "ev-9"
+      ],
+      "contradicting_evidence_ids": [],
+      "alternative_hypotheses": [
+        {
+          "hypothesis": "Root cause originated in upstream 'recommendation' rather than 'product-catalog'",
+          "rejection_reason": "Distributed trace spans confirm that errors propagate upward from 'product-catalog' as the leaf failure.",
+          "evaluated_evidence_ids": [
+            "ev-1"
+          ]
+        }
+      ],
+      "unknowns": [
+        "query_metric_range (call-5) returned no data for {'metric': 'error_ratio', 'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'step_s': 60}",
+        "search_logs (call-7) returned no data for {'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'min_severity': 13, 'limit': 20}",
+        "search_traces (call-8) returned no data for {'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'limit': 20, 'errors_only': True}",
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "recommended_actions": [
+        {
+          "action": "Inspect database locks on astronomy-db and query queue lengths.",
+          "target_service": "product-catalog",
+          "safety_assessment": "Safe read-only database query analysis.",
+          "is_automated_execution": false
+        }
+      ],
+      "generated_at": "2026-10-23T11:48:06.367222Z",
+      "raw_llm_response": null
+    },
+    "observation": {
+      "schema_version": "incident-zero/observation/v1",
+      "mode": "telemetry-only",
+      "incident_id": "INC-20261023-002",
+      "description": "Product catalog health checks are timing out, CPU usage is elevated, and storefront recommendation requests are returning 504 Gateway Timeout. Investigate metrics, traces, and logs to identify the likely cause.",
+      "window_start": "2026-10-23T10:13:58.411261Z",
+      "window_end": "2026-10-23T11:13:58.411261Z",
+      "generated_at": "2026-10-23T11:14:00.569757Z",
+      "initial_symptoms": [
+        "Product catalog health checks are timing out, CPU usage is elevated, and storefront recommendation requests are returning 504 Gateway Timeout. Investigate metrics, traces, and logs to identify the likely cause.",
+        "Reported service: product-catalog",
+        "Planner note: Service 'product-catalog' supplied with the incident.",
+        "Planner note: No error traces found for 'product-catalog'; sampling recent traces instead."
+      ],
+      "affected_services": [
+        "recommendation",
+        "checkout",
+        "frontend",
+        "product-catalog",
+        "frontend-proxy"
+      ],
+      "suspected_services": [],
+      "metric_anomalies": [
+        {
+          "service": "recommendation",
+          "metric": "p95_latency_ms",
+          "value": 15000.0,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-1"
+        },
+        {
+          "service": "checkout",
+          "metric": "p95_latency_ms",
+          "value": 15000.0,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-2"
+        },
+        {
+          "service": "frontend",
+          "metric": "p95_latency_ms",
+          "value": 14444.800407195098,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-3"
+        },
+        {
+          "service": "product-catalog",
+          "metric": "p95_latency_ms",
+          "value": 13361.520306686418,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-4"
+        },
+        {
+          "service": "frontend-proxy",
+          "metric": "p95_latency_ms",
+          "value": 4944.495578219823,
+          "unit": "ms",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-5"
+        },
+        {
+          "service": "product-catalog",
+          "metric": "p95_latency_ms",
+          "value": 15000.0,
+          "unit": "ms",
+          "timestamp": "2026-10-23T10:53:58.411000Z",
+          "threshold": 1000.0,
+          "evidence_id": "ev-9"
+        }
+      ],
+      "log_events": [],
+      "trace_refs": [
+        {
+          "trace_id": "0a0f45b1904aef85a63bcec40cac098a",
+          "root_service": "frontend-web",
+          "root_operation": "GET",
+          "duration_ms": 109.0,
+          "span_count": 33,
+          "error_spans": [],
+          "deepest_error_service": null,
+          "jaeger_url": "http://localhost:8080/jaeger/ui/trace/0a0f45b1904aef85a63bcec40cac098a",
+          "evidence_id": "ev-10"
+        },
+        {
+          "trace_id": "13e7f4cbf64ce48565650d771fb4faee",
+          "root_service": "frontend-web",
+          "root_operation": "GET",
+          "duration_ms": 107.0,
+          "span_count": 25,
+          "error_spans": [],
+          "deepest_error_service": null,
+          "jaeger_url": "http://localhost:8080/jaeger/ui/trace/13e7f4cbf64ce48565650d771fb4faee",
+          "evidence_id": "ev-11"
+        }
+      ],
+      "findings": [
+        {
+          "kind": "observation",
+          "statement": "recommendation p95_latency_ms was 1.5e+04 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-1"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "checkout p95_latency_ms was 1.5e+04 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-2"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "frontend p95_latency_ms was 1.444e+04 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-3"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "product-catalog p95_latency_ms was 1.336e+04 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-4"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "frontend-proxy p95_latency_ms was 4944 ms over the window (above threshold 1000.0).",
+          "evidence_ids": [
+            "ev-5"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "Services emitting ERROR+ logs in the window: otelcol-contrib=1427, load-generator=116, frontend=52.",
+          "evidence_ids": [
+            "ev-6",
+            "ev-7",
+            "ev-8"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "product-catalog p95_latency_ms peaked at 1.5e+04 ms at 2026-10-23T10:53:58.411000+00:00.",
+          "evidence_ids": [
+            "ev-9"
+          ]
+        },
+        {
+          "kind": "observation",
+          "statement": "0 of 20 sampled traces for product-catalog contained error spans.",
+          "evidence_ids": [
+            "ev-10",
+            "ev-11"
+          ]
+        }
+      ],
+      "unknowns": [
+        "query_metric_range (call-5) returned no data for {'metric': 'error_ratio', 'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'step_s': 60}",
+        "search_logs (call-7) returned no data for {'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'min_severity': 13, 'limit': 20}",
+        "search_traces (call-8) returned no data for {'service': 'product-catalog', 'start': '2026-10-23T10:13:58Z', 'end': '2026-10-23T11:13:58Z', 'limit': 20, 'errors_only': True}",
+        "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+      ],
+      "symptom_summary": "Metric anomalies: recommendation p95_latency_ms=1.5e+04ms @ 11:13:58Z; checkout p95_latency_ms=1.5e+04ms @ 11:13:58Z; frontend p95_latency_ms=1.44e+04ms @ 11:13:58Z; product-catalog p95_latency_ms=1.34e+04ms @ 11:13:58Z; frontend-proxy p95_latency_ms=4.94e+03ms @ 11:13:58Z. Affected services (observed): recommendation, checkout, frontend, product-catalog, frontend-proxy.",
+      "llm_narrative": null,
+      "evidence": [
+        {
+          "id": "ev-1",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "recommendation",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "summary": "p95_latency_ms for recommendation = 1.5e+04 ms (threshold 1000.0)",
+          "data": {
+            "service": "recommendation",
+            "value": 15000.0,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:13:58.411000+00:00"
+          }
+        },
+        {
+          "id": "ev-2",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "checkout",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "summary": "p95_latency_ms for checkout = 1.5e+04 ms (threshold 1000.0)",
+          "data": {
+            "service": "checkout",
+            "value": 15000.0,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:13:58.411000+00:00"
+          }
+        },
+        {
+          "id": "ev-3",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "frontend",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "summary": "p95_latency_ms for frontend = 1.444e+04 ms (threshold 1000.0)",
+          "data": {
+            "service": "frontend",
+            "value": 14444.800407195098,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:13:58.411000+00:00"
+          }
+        },
+        {
+          "id": "ev-4",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "product-catalog",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "summary": "p95_latency_ms for product-catalog = 1.336e+04 ms (threshold 1000.0)",
+          "data": {
+            "service": "product-catalog",
+            "value": 13361.520306686418,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:13:58.411000+00:00"
+          }
+        },
+        {
+          "id": "ev-5",
+          "tool_call_id": "call-3",
+          "signal": "metrics",
+          "service": "frontend-proxy",
+          "timestamp": "2026-10-23T11:13:58.411000Z",
+          "summary": "p95_latency_ms for frontend-proxy = 4944 ms (threshold 1000.0)",
+          "data": {
+            "service": "frontend-proxy",
+            "value": 4944.495578219823,
+            "unit": "ms",
+            "timestamp": "2026-10-23T11:13:58.411000+00:00"
+          }
+        },
+        {
+          "id": "ev-6",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "otelcol-contrib",
+          "timestamp": null,
+          "summary": "1427 log records >= severity 17 from otelcol-contrib",
+          "data": {
+            "service": "otelcol-contrib",
+            "count": 1427
+          }
+        },
+        {
+          "id": "ev-7",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "load-generator",
+          "timestamp": null,
+          "summary": "116 log records >= severity 17 from load-generator",
+          "data": {
+            "service": "load-generator",
+            "count": 116
+          }
+        },
+        {
+          "id": "ev-8",
+          "tool_call_id": "call-4",
+          "signal": "logs",
+          "service": "frontend",
+          "timestamp": null,
+          "summary": "52 log records >= severity 17 from frontend",
+          "data": {
+            "service": "frontend",
+            "count": 52
+          }
+        },
+        {
+          "id": "ev-9",
+          "tool_call_id": "call-6",
+          "signal": "metrics",
+          "service": "product-catalog",
+          "timestamp": "2026-10-23T10:53:58.411000Z",
+          "summary": "p95_latency_ms for product-catalog peaked at 1.5e+04 ms at 2026-10-23T10:53:58.411000+00:00 (first 7903, last 54.06)",
+          "data": {
+            "peak": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T10:53:58.411000+00:00"
+            },
+            "first": {
+              "value": 7902.985074626864,
+              "timestamp": "2026-10-23T10:13:58.411000+00:00"
+            },
+            "last": {
+              "value": 54.06250000000003,
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            "step_s": 60,
+            "unit": "ms"
+          }
+        },
+        {
+          "id": "ev-10",
+          "tool_call_id": "call-9",
+          "signal": "traces",
+          "service": "frontend-web",
+          "timestamp": "2026-10-23T11:13:45.757000Z",
+          "summary": "trace 0a0f45b1904aef85a63bcec40cac098a root frontend-web/GET 109.0 ms, 0 error span(s), deepest error in None",
+          "data": {
+            "trace_id": "0a0f45b1904aef85a63bcec40cac098a",
+            "start": "2026-10-23T11:13:45.757000+00:00",
+            "duration_ms": 109.0,
+            "root_service": "frontend-web",
+            "root_operation": "GET",
+            "span_count": 33,
+            "services": [
+              "currency",
+              "frontend",
+              "frontend-proxy",
+              "frontend-web",
+              "product-catalog",
+              "recommendation"
+            ],
+            "service_edges": [
+              [
+                "frontend",
+                "currency"
+              ],
+              [
+                "frontend",
+                "product-catalog"
+              ],
+              [
+                "frontend",
+                "recommendation"
+              ],
+              [
+                "frontend-proxy",
+                "frontend"
+              ],
+              [
+                "frontend-web",
+                "frontend-proxy"
+              ],
+              [
+                "recommendation",
+                "product-catalog"
+              ]
+            ],
+            "error_spans": [],
+            "deepest_error_service": null,
+            "slowest_spans": [
+              {
+                "service": "frontend-web",
+                "name": "GET",
+                "duration_ms": 109.0
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "GET",
+                "duration_ms": 23.493
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "router frontend egress",
+                "duration_ms": 23.291
+              },
+              {
+                "service": "frontend",
+                "name": "GET /api/recommendations",
+                "duration_ms": 20.782
+              },
+              {
+                "service": "frontend",
+                "name": "GET /api/recommendations",
+                "duration_ms": 20.12
+              }
+            ],
+            "jaeger_url": "http://localhost:8080/jaeger/ui/trace/0a0f45b1904aef85a63bcec40cac098a"
+          }
+        },
+        {
+          "id": "ev-11",
+          "tool_call_id": "call-9",
+          "signal": "traces",
+          "service": "frontend-web",
+          "timestamp": "2026-10-23T11:13:53.954000Z",
+          "summary": "trace 13e7f4cbf64ce48565650d771fb4faee root frontend-web/GET 107.0 ms, 0 error span(s), deepest error in None",
+          "data": {
+            "trace_id": "13e7f4cbf64ce48565650d771fb4faee",
+            "start": "2026-10-23T11:13:53.954000+00:00",
+            "duration_ms": 107.0,
+            "root_service": "frontend-web",
+            "root_operation": "GET",
+            "span_count": 25,
+            "services": [
+              "frontend",
+              "frontend-proxy",
+              "frontend-web",
+              "product-catalog",
+              "recommendation"
+            ],
+            "service_edges": [
+              [
+                "frontend",
+                "product-catalog"
+              ],
+              [
+                "frontend",
+                "recommendation"
+              ],
+              [
+                "frontend-proxy",
+                "frontend"
+              ],
+              [
+                "frontend-web",
+                "frontend-proxy"
+              ],
+              [
+                "recommendation",
+                "product-catalog"
+              ]
+            ],
+            "error_spans": [],
+            "deepest_error_service": null,
+            "slowest_spans": [
+              {
+                "service": "frontend-web",
+                "name": "GET",
+                "duration_ms": 107.0
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "GET",
+                "duration_ms": 46.102
+              },
+              {
+                "service": "frontend-proxy",
+                "name": "router frontend egress",
+                "duration_ms": 45.739
+              },
+              {
+                "service": "frontend",
+                "name": "GET /api/recommendations",
+                "duration_ms": 42.674
+              },
+              {
+                "service": "frontend",
+                "name": "GET /api/recommendations",
+                "duration_ms": 41.366
+              }
+            ],
+            "jaeger_url": "http://localhost:8080/jaeger/ui/trace/13e7f4cbf64ce48565650d771fb4faee"
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "id": "call-1",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: server-span error ratio for all services",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": null,
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",status_code=\"STATUS_CODE_ERROR\"}[3600s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[3600s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:13:58.411321Z",
+          "duration_ms": 30.0,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "checkout",
+              "value": 0.03688558573477681,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 0.016810540663334848,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 0.003516239474414731,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 0.0027837784323829205,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.0,
+              "unit": "ratio",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-2",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: request volume for all services",
+          "arguments": {
+            "metric": "request_rate",
+            "service": null,
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z"
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\"}[3600s]))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:13:58.441429Z",
+          "duration_ms": 2.9,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "frontend",
+              "value": 5.886227664861057,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 5.596368194638008,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 3.0531551859989374,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "product-catalog",
+              "value": 2.0928546467699745,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 1.1862865389108483,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 0.6754968122257295,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 0.44552842864072584,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "recommendation",
+              "value": 0.32348132580445854,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 0.19578389413317882,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 0.16894483216687003,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 0.06723891313664727,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 0.045202630680099005,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "checkout",
+              "value": 0.022880233262171795,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 0.022036282456548265,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "email",
+              "value": 0.021753766014797647,
+              "unit": "req/s",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-3",
+          "tool": "query_metric",
+          "signal": "metrics",
+          "reason": "Overview: p95 server latency for all services",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": null,
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z"
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\"}[3600s])))",
+          "backend_url": "http://localhost:9090/api/v1/query",
+          "started_at": "2026-10-23T11:13:58.444359Z",
+          "duration_ms": 10.2,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "recommendation",
+              "value": 15000.0,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "checkout",
+              "value": 15000.0,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "frontend",
+              "value": 14444.800407195098,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "product-catalog",
+              "value": 13361.520306686418,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "frontend-proxy",
+              "value": 4944.495578219823,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "email",
+              "value": 89.37499999999991,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "flagd",
+              "value": 67.80172413793174,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "shipping",
+              "value": 48.941176470588196,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "cart",
+              "value": 46.82824427480915,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "payment",
+              "value": 40.99999999999995,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "ad",
+              "value": 19.161290322580605,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "quote",
+              "value": 5.5,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "currency",
+              "value": 1.9000000000000001,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "telemetry-docs",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            {
+              "service": "image-provider",
+              "value": 1.9,
+              "unit": "ms",
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-4",
+          "tool": "count_logs_by_service",
+          "signal": "logs",
+          "reason": "Which services emitted ERROR-or-worse logs in the window",
+          "arguments": {
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "min_severity": 17
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 10:13:58' and `@timestamp` <= '2026-10-23 11:13:58' and severity.number >= 17 | stats count() as n by resource.service.name",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:13:58.454623Z",
+          "duration_ms": 1703.2,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "service": "otelcol-contrib",
+              "count": 1427
+            },
+            {
+              "service": "load-generator",
+              "count": 116
+            },
+            {
+              "service": "frontend",
+              "count": 52
+            }
+          ],
+          "truncated": false
+        },
+        {
+          "id": "call-5",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "Error ratio timeline for product-catalog (peak + timestamp)",
+          "arguments": {
+            "metric": "error_ratio",
+            "service": "product-catalog",
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "step_s": 60
+          },
+          "query": "sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"product-catalog\",status_code=\"STATUS_CODE_ERROR\"}[300s])) / sum by (service_name) (rate(traces_span_metrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",service_name=\"product-catalog\"}[300s]))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:14:00.157885Z",
+          "duration_ms": 2.8,
+          "status": "empty",
+          "error": null,
+          "result": null,
+          "truncated": false
+        },
+        {
+          "id": "call-6",
+          "tool": "query_metric_range",
+          "signal": "metrics",
+          "reason": "p95 latency timeline for product-catalog",
+          "arguments": {
+            "metric": "p95_latency_ms",
+            "service": "product-catalog",
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "step_s": 60
+          },
+          "query": "histogram_quantile(0.95, sum by (le, service_name) (rate(traces_span_metrics_duration_milliseconds_bucket{span_kind=\"SPAN_KIND_SERVER\",service_name=\"product-catalog\"}[300s])))",
+          "backend_url": "http://localhost:9090/api/v1/query_range",
+          "started_at": "2026-10-23T11:14:00.160794Z",
+          "duration_ms": 3.2,
+          "status": "ok",
+          "error": null,
+          "result": {
+            "service": "product-catalog",
+            "unit": "ms",
+            "step_s": 60,
+            "peak": {
+              "value": 15000.0,
+              "timestamp": "2026-10-23T10:53:58.411000+00:00"
+            },
+            "first": {
+              "value": 7902.985074626864,
+              "timestamp": "2026-10-23T10:13:58.411000+00:00"
+            },
+            "last": {
+              "value": 54.06250000000003,
+              "timestamp": "2026-10-23T11:13:58.411000+00:00"
+            },
+            "points": [
+              [
+                "2026-10-23T10:14:58.411000+00:00",
+                8028.169014084502
+              ],
+              [
+                "2026-10-23T10:15:58.411000+00:00",
+                8070.895522388057
+              ],
+              [
+                "2026-10-23T10:16:58.411000+00:00",
+                8642.857142857141
+              ],
+              [
+                "2026-10-23T10:17:58.411000+00:00",
+                8934.343434343431
+              ],
+              [
+                "2026-10-23T10:18:58.411000+00:00",
+                9947.674418604653
+              ],
+              [
+                "2026-10-23T10:19:58.411000+00:00",
+                9933.07086614173
+              ],
+              [
+                "2026-10-23T10:20:58.411000+00:00",
+                9607.692307692312
+              ],
+              [
+                "2026-10-23T10:21:58.411000+00:00",
+                9311.904761904769
+              ],
+              [
+                "2026-10-23T10:22:58.411000+00:00",
+                8528.350515463917
+              ],
+              [
+                "2026-10-23T10:23:58.411000+00:00",
+                9202.991452991453
+              ],
+              [
+                "2026-10-23T10:24:58.411000+00:00",
+                9356.837606837602
+              ],
+              [
+                "2026-10-23T10:25:58.411000+00:00",
+                9484.251968503933
+              ],
+              [
+                "2026-10-23T10:26:58.411000+00:00",
+                9579.136690647478
+              ],
+              [
+                "2026-10-23T10:27:58.411000+00:00",
+                9851.26582278481
+              ],
+              [
+                "2026-10-23T10:28:58.411000+00:00",
+                9816.265060240963
+              ],
+              [
+                "2026-10-23T10:29:58.411000+00:00",
+                9863.031914893614
+              ],
+              [
+                "2026-10-23T10:30:58.411000+00:00",
+                9772.972972972972
+              ],
+              [
+                "2026-10-23T10:31:58.411000+00:00",
+                9335.365853658534
+              ],
+              [
+                "2026-10-23T10:32:58.411000+00:00",
+                9519.337016574584
+              ],
+              [
+                "2026-10-23T10:33:58.411000+00:00",
+                9321.656050955413
+              ],
+              [
+                "2026-10-23T10:34:58.411000+00:00",
+                9519.230769230768
+              ],
+              [
+                "2026-10-23T10:35:58.411000+00:00",
+                9841.6149068323
+              ],
+              [
+                "2026-10-23T10:36:58.411000+00:00",
+                9634.892086330932
+              ],
+              [
+                "2026-10-23T10:37:58.411000+00:00",
+                9629.084967320265
+              ],
+              [
+                "2026-10-23T10:38:58.411000+00:00",
+                9563.793103448274
+              ],
+              [
+                "2026-10-23T10:39:58.411000+00:00",
+                9019.379844961239
+              ],
+              [
+                "2026-10-23T10:40:58.411000+00:00",
+                9042.968749999998
+              ],
+              [
+                "2026-10-23T10:41:58.411000+00:00",
+                9208.02919708029
+              ],
+              [
+                "2026-10-23T10:42:58.411000+00:00",
+                9020.522388059702
+              ],
+              [
+                "2026-10-23T10:43:58.411000+00:00",
+                9426.258992805755
+              ],
+              [
+                "2026-10-23T10:44:58.411000+00:00",
+                9356.617647058822
+              ],
+              [
+                "2026-10-23T10:45:58.411000+00:00",
+                9573.64341085271
+              ],
+              [
+                "2026-10-23T10:46:58.411000+00:00",
+                9669.354838709676
+              ],
+              [
+                "2026-10-23T10:47:58.411000+00:00",
+                9881.666666666664
+              ],
+              [
+                "2026-10-23T10:48:58.411000+00:00",
+                12937.499999999987
+              ],
+              [
+                "2026-10-23T10:49:58.411000+00:00",
+                14071.428571428569
+              ],
+              [
+                "2026-10-23T10:50:58.411000+00:00",
+                14153.846153846145
+              ],
+              [
+                "2026-10-23T10:51:58.411000+00:00",
+                14410.0
+              ],
+              [
+                "2026-10-23T10:52:58.411000+00:00",
+                13961.111111111119
+              ],
+              [
+                "2026-10-23T10:53:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:54:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:55:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:56:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:57:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:58:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T10:59:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:00:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:01:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:02:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:03:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:04:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:05:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:06:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:07:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:08:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:09:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:10:58.411000+00:00",
+                15000.0
+              ],
+              [
+                "2026-10-23T11:11:58.411000+00:00",
+                322.34328163182374
+              ],
+              [
+                "2026-10-23T11:12:58.411000+00:00",
+                55.41717163375674
+              ],
+              [
+                "2026-10-23T11:13:58.411000+00:00",
+                54.06250000000003
+              ]
+            ]
+          },
+          "truncated": false
+        },
+        {
+          "id": "call-7",
+          "tool": "search_logs",
+          "signal": "logs",
+          "reason": "WARN+ logs for product-catalog",
+          "arguments": {
+            "service": "product-catalog",
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "min_severity": 13,
+            "limit": 20
+          },
+          "query": "source=otel-logs-* | where `@timestamp` >= '2026-10-23 10:13:58' and `@timestamp` <= '2026-10-23 11:13:58' and severity.number >= 13 and resource.service.name = 'product-catalog' | sort - `@timestamp` | fields `@timestamp`, severity.text, resource.service.name, body, traceId, spanId | head 20",
+          "backend_url": "http://localhost:60193/_plugins/_ppl",
+          "started_at": "2026-10-23T11:14:00.164087Z",
+          "duration_ms": 127.2,
+          "status": "empty",
+          "error": null,
+          "result": [],
+          "truncated": false
+        },
+        {
+          "id": "call-8",
+          "tool": "search_traces",
+          "signal": "traces",
+          "reason": "Error traces involving product-catalog",
+          "arguments": {
+            "service": "product-catalog",
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "limit": 20,
+            "errors_only": true
+          },
+          "query": "GET http://localhost:51727/jaeger/ui/api/v3/traces?query.service_name=product-catalog&query.num_traces=20&query.start_time_min=2026-10-23T10:13:58Z&query.start_time_max=2026-10-23T11:13:58Z&query.attributes={\"error\":\"true\"}",
+          "backend_url": "http://localhost:51727/jaeger/ui/api/v3/traces",
+          "started_at": "2026-10-23T11:14:00.291471Z",
+          "duration_ms": 225.8,
+          "status": "empty",
+          "error": null,
+          "result": [],
+          "truncated": false
+        },
+        {
+          "id": "call-9",
+          "tool": "search_traces",
+          "signal": "traces",
+          "reason": "Recent traces involving product-catalog",
+          "arguments": {
+            "service": "product-catalog",
+            "start": "2026-10-23T10:13:58Z",
+            "end": "2026-10-23T11:13:58Z",
+            "limit": 20,
+            "errors_only": false
+          },
+          "query": "GET http://localhost:51727/jaeger/ui/api/v3/traces?query.service_name=product-catalog&query.num_traces=20&query.start_time_min=2026-10-23T10:13:58Z&query.start_time_max=2026-10-23T11:13:58Z",
+          "backend_url": "http://localhost:51727/jaeger/ui/api/v3/traces",
+          "started_at": "2026-10-23T11:14:00.517332Z",
+          "duration_ms": 51.4,
+          "status": "ok",
+          "error": null,
+          "result": [
+            {
+              "trace_id": "0a0f45b1904aef85a63bcec40cac098a",
+              "start": "2026-10-23T11:13:45.757000+00:00",
+              "duration_ms": 109.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 33,
+              "services": [
+                "currency",
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "currency"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 109.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 23.493
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 23.291
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 20.782
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 20.12
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/0a0f45b1904aef85a63bcec40cac098a"
+            },
+            {
+              "trace_id": "13e7f4cbf64ce48565650d771fb4faee",
+              "start": "2026-10-23T11:13:53.954000+00:00",
+              "duration_ms": 107.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 107.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 46.102
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 45.739
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 42.674
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 41.366
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/13e7f4cbf64ce48565650d771fb4faee"
+            },
+            {
+              "trace_id": "cde99fa713211abcc2d0cfefae53c296",
+              "start": "2026-10-23T11:13:49.800000+00:00",
+              "duration_ms": 80.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 33,
+              "services": [
+                "currency",
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "currency"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 80.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 49.54
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 49.139
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 41.784
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 40.666
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/cde99fa713211abcc2d0cfefae53c296"
+            },
+            {
+              "trace_id": "df6d331934262f13b3b4037d2dee88b0",
+              "start": "2026-10-23T11:13:49.711000+00:00",
+              "duration_ms": 77.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 77.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 36.718
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 36.365
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 34.736
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 30.455
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/df6d331934262f13b3b4037d2dee88b0"
+            },
+            {
+              "trace_id": "7fcf18e0a402a397d85ea733e1c7016b",
+              "start": "2026-10-23T11:13:57.882000+00:00",
+              "duration_ms": 68.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 22,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 68.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 30.319
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 29.954
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 26.634
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 25.59
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/7fcf18e0a402a397d85ea733e1c7016b"
+            },
+            {
+              "trace_id": "49f4dfcc92b4640f6c3233570ea9bc21",
+              "start": "2026-10-23T11:13:57.860000+00:00",
+              "duration_ms": 65.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 22,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 65.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 37.007
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 36.722
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 36.126
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 34.585
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/49f4dfcc92b4640f6c3233570ea9bc21"
+            },
+            {
+              "trace_id": "1c47c7950d3f262d7a3b102292d8b093",
+              "start": "2026-10-23T11:13:53.931000+00:00",
+              "duration_ms": 60.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 60.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 40.335
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 40.084
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 39.522
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 36.834
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/1c47c7950d3f262d7a3b102292d8b093"
+            },
+            {
+              "trace_id": "a6e8619ef0017d009fa53421909857cc",
+              "start": "2026-10-23T11:13:49.606662+00:00",
+              "duration_ms": 58.083,
+              "root_service": "frontend-proxy",
+              "root_operation": "GET",
+              "span_count": 24,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 58.083
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 57.631
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 56.299
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 52.256
+                },
+                {
+                  "service": "frontend",
+                  "name": "executing api route (pages) /api/recommendations",
+                  "duration_ms": 50.958
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/a6e8619ef0017d009fa53421909857cc"
+            },
+            {
+              "trace_id": "7515a8c81bc685312cdbd7836be3b4dd",
+              "start": "2026-10-23T11:13:42.114000+00:00",
+              "duration_ms": 50.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 50.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 28.636
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 28.233
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 25.005
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 24.321
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/7515a8c81bc685312cdbd7836be3b4dd"
+            },
+            {
+              "trace_id": "efe03ba96f7dd1d1e766801425605160",
+              "start": "2026-10-23T11:13:53.787000+00:00",
+              "duration_ms": 44.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 44.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 30.635
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 30.401
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 29.873
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 28.956
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/efe03ba96f7dd1d1e766801425605160"
+            },
+            {
+              "trace_id": "d71efcc57e0d75d23814e54b62c9c031",
+              "start": "2026-10-23T11:13:45.698000+00:00",
+              "duration_ms": 44.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 44.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 21.413
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 21.108
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 20.429
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 19.575
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/d71efcc57e0d75d23814e54b62c9c031"
+            },
+            {
+              "trace_id": "f52dd33b2a4c17c86d4320965bab14f6",
+              "start": "2026-10-23T11:13:45.722000+00:00",
+              "duration_ms": 42.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 25,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog",
+                "recommendation"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend",
+                  "recommendation"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ],
+                [
+                  "recommendation",
+                  "product-catalog"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 42.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 22.653
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 22.289
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 21.885
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 21.049
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/f52dd33b2a4c17c86d4320965bab14f6"
+            },
+            {
+              "trace_id": "878850392a83c8def93ffdef6d5cf896",
+              "start": "2026-10-23T11:13:48.305018+00:00",
+              "duration_ms": 39.207,
+              "root_service": "load-generator",
+              "root_operation": "user_browse_product",
+              "span_count": 11,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "load-generator",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "load-generator",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "load-generator",
+                  "name": "user_browse_product",
+                  "duration_ms": 39.207
+                },
+                {
+                  "service": "load-generator",
+                  "name": "GET",
+                  "duration_ms": 38.475
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 37.064
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 36.851
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/[productId]/index",
+                  "duration_ms": 36.454
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/878850392a83c8def93ffdef6d5cf896"
+            },
+            {
+              "trace_id": "7f68ca1474e97e4236b4af60731ca105",
+              "start": "2026-10-23T11:13:57.944000+00:00",
+              "duration_ms": 38.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 30,
+              "services": [
+                "currency",
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "currency"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 38.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 22.449
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 22.209
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 21.668
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/recommendations",
+                  "duration_ms": 19.948
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/7f68ca1474e97e4236b4af60731ca105"
+            },
+            {
+              "trace_id": "683b6ee9c10613f5f0b6798c5d021374",
+              "start": "2026-10-23T11:13:53.892000+00:00",
+              "duration_ms": 35.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 18,
+              "services": [
+                "cart",
+                "flagd",
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "cart",
+                  "flagd"
+                ],
+                [
+                  "frontend",
+                  "cart"
+                ],
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 35.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 16.359
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 15.996
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/cart",
+                  "duration_ms": 15.594
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/cart",
+                  "duration_ms": 15.243
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/683b6ee9c10613f5f0b6798c5d021374"
+            },
+            {
+              "trace_id": "6907e206aca0c695b02fd6b401eb9551",
+              "start": "2026-10-23T11:13:53.788000+00:00",
+              "duration_ms": 32.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 10,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 32.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 22.023
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 21.707
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/[productId]/index",
+                  "duration_ms": 19.626
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/[productId]/index",
+                  "duration_ms": 19.305
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/6907e206aca0c695b02fd6b401eb9551"
+            },
+            {
+              "trace_id": "dc6f67ebdb7edb89eb90e33d3e3c28f0",
+              "start": "2026-10-23T11:13:53.485000+00:00",
+              "duration_ms": 32.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 10,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 32.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 11.466
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 10.781
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/index",
+                  "duration_ms": 10.268
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/index",
+                  "duration_ms": 7.105
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/dc6f67ebdb7edb89eb90e33d3e3c28f0"
+            },
+            {
+              "trace_id": "598c2c718644f3cb20424f3bc9769877",
+              "start": "2026-10-23T11:13:43.436560+00:00",
+              "duration_ms": 19.245,
+              "root_service": "load-generator",
+              "root_operation": "user_browse_product",
+              "span_count": 11,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "load-generator",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "load-generator",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "load-generator",
+                  "name": "user_browse_product",
+                  "duration_ms": 19.245
+                },
+                {
+                  "service": "load-generator",
+                  "name": "GET",
+                  "duration_ms": 18.02
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 15.189
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 14.857
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/[productId]/index",
+                  "duration_ms": 14.183
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/598c2c718644f3cb20424f3bc9769877"
+            },
+            {
+              "trace_id": "c27bd670e117d08fdfa82f6103a4fcf2",
+              "start": "2026-10-23T11:13:53.514000+00:00",
+              "duration_ms": 19.0,
+              "root_service": "frontend-web",
+              "root_operation": "GET",
+              "span_count": 10,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "frontend-web",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "frontend-web",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "frontend-web",
+                  "name": "GET",
+                  "duration_ms": 19.0
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 8.929
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 8.48
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/index",
+                  "duration_ms": 7.626
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/index",
+                  "duration_ms": 5.336
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/c27bd670e117d08fdfa82f6103a4fcf2"
+            },
+            {
+              "trace_id": "4fbe7a31f92bfdf6b3a69e55360fe36a",
+              "start": "2026-10-23T11:13:43.599616+00:00",
+              "duration_ms": 17.322,
+              "root_service": "load-generator",
+              "root_operation": "user_browse_product",
+              "span_count": 11,
+              "services": [
+                "frontend",
+                "frontend-proxy",
+                "load-generator",
+                "product-catalog"
+              ],
+              "service_edges": [
+                [
+                  "frontend",
+                  "product-catalog"
+                ],
+                [
+                  "frontend-proxy",
+                  "frontend"
+                ],
+                [
+                  "load-generator",
+                  "frontend-proxy"
+                ]
+              ],
+              "error_spans": [],
+              "deepest_error_service": null,
+              "slowest_spans": [
+                {
+                  "service": "load-generator",
+                  "name": "user_browse_product",
+                  "duration_ms": 17.322
+                },
+                {
+                  "service": "load-generator",
+                  "name": "GET",
+                  "duration_ms": 16.319
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "GET",
+                  "duration_ms": 14.234
+                },
+                {
+                  "service": "frontend-proxy",
+                  "name": "router frontend egress",
+                  "duration_ms": 13.757
+                },
+                {
+                  "service": "frontend",
+                  "name": "GET /api/products/[productId]/index",
+                  "duration_ms": 12.867
+                }
+              ],
+              "jaeger_url": "http://localhost:8080/jaeger/ui/trace/4fbe7a31f92bfdf6b3a69e55360fe36a"
+            }
+          ],
+          "truncated": false
+        }
+      ]
+    },
+    "schema_valid": true,
+    "correct_root": true,
+    "confidence": 0.72
+  }
+]

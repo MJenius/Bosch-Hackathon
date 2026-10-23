@@ -5,8 +5,10 @@
 Every call is bounded (time window, row limits, timeouts) and recorded as a ToolCall.
 """
 
+import math
 import os
 import re
+import subprocess
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -34,6 +36,7 @@ class TelemetryConfig:
     jaeger_public_url: str
     opensearch_url: str
     timeout_s: float = 10.0
+    repo_root: str = ""
 
     @classmethod
     def from_env(cls) -> "TelemetryConfig":
@@ -46,6 +49,7 @@ class TelemetryConfig:
             jaeger_public_url=os.getenv("JAEGER_PUBLIC_URL", "http://localhost:8080").rstrip("/"),
             opensearch_url=osearch.rstrip("/"),
             timeout_s=float(os.getenv("INCIDENT_TOOL_TIMEOUT_S", "10")),
+            repo_root=os.getenv("REPO_ROOT") or os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")),
         )
 
 
@@ -118,7 +122,7 @@ class DiagnosticToolkit:
             status, error = "error", f"HTTP {e.response.status_code}: {e.response.text[:300]}"
         except httpx.HTTPError as e:
             status, error = "error", f"{type(e).__name__}: {e}"
-        except (ValueError, KeyError, TypeError) as e:
+        except (ValueError, KeyError, TypeError, AttributeError) as e:
             status, error = "error", f"{type(e).__name__}: {e}"
         call = ToolCall(
             id=call_id, tool=tool, signal=signal, reason=reason, arguments=arguments,
@@ -143,8 +147,11 @@ class DiagnosticToolkit:
                 raise ValueError(body.get("error", "prometheus query failed"))
             rows = []
             for s in body["data"]["result"]:
-                v = float(s["value"][1])
-                if v != v:  # NaN: no traffic in window
+                try:
+                    v = float(s["value"][1])
+                except (ValueError, TypeError, IndexError):
+                    continue
+                if not math.isfinite(v):  # Drop NaN and Inf
                     continue
                 rows.append({"service": s["metric"].get("service_name"), "value": v,
                              "unit": _UNITS[metric],
@@ -175,7 +182,14 @@ class DiagnosticToolkit:
             series = body["data"]["result"]
             if not series:
                 return None, False
-            pts = [(float(t), float(v)) for t, v in series[0]["values"] if float(v) == float(v)]
+            pts = []
+            for item in series[0].get("values", []):
+                try:
+                    t, v = float(item[0]), float(item[1])
+                    if math.isfinite(v):
+                        pts.append((t, v))
+                except (ValueError, TypeError, IndexError):
+                    continue
             if not pts:
                 return None, False
             peak = max(pts, key=lambda p: p[1])
@@ -196,8 +210,14 @@ class DiagnosticToolkit:
                                    timeout=self.config.timeout_s)
         r.raise_for_status()
         body = r.json()
-        cols = [c["name"] for c in body.get("schema", [])]
-        return [dict(zip(cols, row)) for row in body.get("datarows", [])]
+        if not isinstance(body, dict):
+            raise ValueError(f"unexpected OpenSearch response format: expected dict, got {type(body).__name__}")
+        if "error" in body:
+            err = body["error"]
+            reason = err.get("reason", str(err)) if isinstance(err, dict) else str(err)
+            raise ValueError(f"OpenSearch query error: {reason}")
+        cols = [c["name"] for c in body.get("schema", []) if isinstance(c, dict) and "name" in c]
+        return [dict(zip(cols, row)) for row in body.get("datarows", []) if isinstance(row, (list, tuple))]
 
     def _ppl_where(self, start, end, service, min_severity):
         clauses = [f"`@timestamp` >= '{_ppl_ts(start)}'", f"`@timestamp` <= '{_ppl_ts(end)}'",
@@ -289,6 +309,48 @@ class DiagnosticToolkit:
             return traces, False
 
         return await self._run("get_trace", "traces", reason, {"trace_id": trace_id}, f"GET {url}", url, fn)
+
+    async def get_change_history(self, start: datetime, end: datetime, limit: int = 10,
+                                 reason: str = "") -> ToolCall:
+        """Fetch git repository commit history within or leading up to the window as code changes (not confirmed deployments)."""
+        limit = max(1, min(int(limit), 20))
+        repo_dir = self.config.repo_root or os.getcwd()
+        cmd = ["git", "log", f"-n{limit}", "--pretty=format:%H|%an|%ad|%s", "--date=iso-strict"]
+        query = " ".join(cmd)
+        url = f"file://{repo_dir}"
+
+        async def fn():
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    cwd=repo_dir,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=5.0,
+                )
+            except Exception as exc:
+                raise ValueError(f"git command failed: {exc}") from exc
+            if proc.returncode != 0:
+                raise ValueError(f"git command error (rc={proc.returncode}): {proc.stderr.strip()}")
+            lines = [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+            commits = []
+            for line in lines:
+                parts = line.split("|", 3)
+                if len(parts) == 4:
+                    commits.append({
+                        "commit_hash": parts[0],
+                        "author": parts[1],
+                        "committed_at": parts[2],
+                        "message": parts[3],
+                        "change_type": "code_commit",
+                        "deployment_confirmed": False,
+                    })
+            return commits, False
+
+        return await self._run("get_change_history", "changes", reason,
+                               {"start": _iso(start), "end": _iso(end), "limit": limit},
+                               query, url, fn)
 
 
 def summarize_traces(resource_spans: list[dict]) -> list[dict[str, Any]]:

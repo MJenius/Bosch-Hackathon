@@ -1,0 +1,65 @@
+{
+  "schema_version": "incident-zero/diagnosis/v1",
+  "incident_id": "SCENARIO-1-PAYMENT-FAILURE",
+  "description": "Users reporting transactions failing at checkout payment step",
+  "diagnosis_status": "confirmed",
+  "root_cause": "Payment service failed to process authorization/charge requests, causing checkout failure.",
+  "confidence": 0.88,
+  "affected_services": [
+    "checkout",
+    "payment"
+  ],
+  "symptoms": [
+    "Users reporting transactions failing at checkout payment step",
+    "Planner note: Service 'checkout' mentioned in the incident description.",
+    "Planner note: Follow-up: 1 error trace(s) show errors deepest in 'payment'; querying it.",
+    "Metric anomalies: checkout p95_latency_ms=1.5e+04ms @ 11:43:02Z. 1 error trace(s) cited, e.g. 1bbec8c6fad47a29ffac3ece598a0ebf. 1 WARN/ERROR log record(s) cited. Affected services (observed): checkout, payment. Leads to investigate (unconfirmed): payment."
+  ],
+  "causal_chain": [
+    {
+      "step_number": 1,
+      "service": "payment",
+      "description": "Service 'payment' experienced internal faults or failures, generating errors at the bottom of the call graph.",
+      "evidence_ids": [
+        "ev-4",
+        "ev-6"
+      ]
+    },
+    {
+      "step_number": 2,
+      "service": "checkout",
+      "description": "Upstream service 'checkout' encountered cascading errors or elevated latency when calling 'payment'.",
+      "evidence_ids": [
+        "ev-3"
+      ]
+    }
+  ],
+  "supporting_evidence_ids": [
+    "ev-4",
+    "ev-6"
+  ],
+  "contradicting_evidence_ids": [],
+  "alternative_hypotheses": [
+    {
+      "hypothesis": "Root cause originated in upstream 'checkout' rather than 'payment'",
+      "rejection_reason": "Distributed trace spans confirm that errors propagate upward from 'payment' as the leaf failure.",
+      "evaluated_evidence_ids": [
+        "ev-3"
+      ]
+    }
+  ],
+  "unknowns": [
+    "search_logs (call-7) returned no data for {'service': 'checkout', 'start': '2026-10-23T11:43:02Z', 'end': '2026-10-23T11:45:02Z', 'min_severity': 13, 'limit': 20}",
+    "Root cause is not established at Checkpoint 1; findings describe symptoms and leads only."
+  ],
+  "recommended_actions": [
+    {
+      "action": "Verify payment gateway connectivity, credentials, and feature flag configuration.",
+      "target_service": "payment",
+      "safety_assessment": "Safe inspection / configuration audit.",
+      "is_automated_execution": false
+    }
+  ],
+  "generated_at": "2026-10-23T11:45:05.906335Z",
+  "raw_llm_response": null
+}

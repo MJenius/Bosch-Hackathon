@@ -1,0 +1,206 @@
+{
+  "$defs": {
+    "AlternativeHypothesis": {
+      "properties": {
+        "hypothesis": {
+          "title": "Hypothesis",
+          "type": "string"
+        },
+        "rejection_reason": {
+          "title": "Rejection Reason",
+          "type": "string"
+        },
+        "evaluated_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evaluated Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "hypothesis",
+        "rejection_reason"
+      ],
+      "title": "AlternativeHypothesis",
+      "type": "object"
+    },
+    "CausalStep": {
+      "properties": {
+        "step_number": {
+          "minimum": 1,
+          "title": "Step Number",
+          "type": "integer"
+        },
+        "service": {
+          "title": "Service",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "step_number",
+        "service",
+        "description"
+      ],
+      "title": "CausalStep",
+      "type": "object"
+    },
+    "RecommendedAction": {
+      "properties": {
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "target_service": {
+          "title": "Target Service",
+          "type": "string"
+        },
+        "safety_assessment": {
+          "title": "Safety Assessment",
+          "type": "string"
+        },
+        "is_automated_execution": {
+          "const": false,
+          "default": false,
+          "title": "Is Automated Execution",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "action",
+        "target_service",
+        "safety_assessment"
+      ],
+      "title": "RecommendedAction",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": "incident-zero/diagnosis/v1",
+      "default": "incident-zero/diagnosis/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "incident_id": {
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    },
+    "diagnosis_status": {
+      "enum": [
+        "confirmed",
+        "probable",
+        "insufficient_evidence"
+      ],
+      "title": "Diagnosis Status",
+      "type": "string"
+    },
+    "root_cause": {
+      "title": "Root Cause",
+      "type": "string"
+    },
+    "confidence": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "affected_services": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Affected Services",
+      "type": "array"
+    },
+    "symptoms": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Symptoms",
+      "type": "array"
+    },
+    "causal_chain": {
+      "items": {
+        "$ref": "#/$defs/CausalStep"
+      },
+      "title": "Causal Chain",
+      "type": "array"
+    },
+    "supporting_evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Supporting Evidence Ids",
+      "type": "array"
+    },
+    "contradicting_evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Contradicting Evidence Ids",
+      "type": "array"
+    },
+    "alternative_hypotheses": {
+      "items": {
+        "$ref": "#/$defs/AlternativeHypothesis"
+      },
+      "title": "Alternative Hypotheses",
+      "type": "array"
+    },
+    "unknowns": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unknowns",
+      "type": "array"
+    },
+    "recommended_actions": {
+      "items": {
+        "$ref": "#/$defs/RecommendedAction"
+      },
+      "title": "Recommended Actions",
+      "type": "array"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "raw_llm_response": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Raw Llm Response"
+    }
+  },
+  "required": [
+    "incident_id",
+    "description",
+    "diagnosis_status",
+    "root_cause",
+    "confidence"
+  ],
+  "title": "DiagnosisReport",
+  "type": "object"
+}

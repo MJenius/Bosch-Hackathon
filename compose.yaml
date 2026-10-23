@@ -526,7 +526,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 20M
+          memory: 128M
     restart: unless-stopped
     ports:
       - "${PRODUCT_CATALOG_PORT}"
@@ -534,7 +534,7 @@ services:
       - PRODUCT_CATALOG_PORT
       - FLAGD_HOST
       - FLAGD_PORT
-      - GOMEMLIMIT=16MiB
+      - GOMEMLIMIT=96MiB
       - OTEL_EXPORTER_OTLP_ENDPOINT
       - OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
       - OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION

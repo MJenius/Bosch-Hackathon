@@ -109,11 +109,13 @@ INCIDENT_LIVE=1 PROMETHEUS_URL=... JAEGER_URL=... OPENSEARCH_URL=... python -m p
 
 | Module | Responsibility |
 | --- | --- |
-| `incident/telemetry.py` | Prometheus, Jaeger and OpenSearch adapters; bounded, read-only, error-capturing |
+| `incident/telemetry.py` | Prometheus, Jaeger, OpenSearch and safe Git change-history adapters; bounded, read-only, error-capturing |
 | `incident/workflow.py` | Planners (telemetry-only and LLM), prompt, report builder |
-| `incident/models.py` | Input, evidence and report schema plus validation |
-| `incident/render.py`, `api.py`, `cli.py` | Demo surfaces |
-| `tests/` | Unit tests (mocked) and live smoke test |
+| `incident/models.py` | Input, evidence and observation report schema plus validation |
+| `incident/diagnosis.py` | Checkpoint 2 Brain diagnosis engine (evidence-driven reasoning & causal chains) |
+| `incident/diagnosis_models.py` | Checkpoint 2 Brain diagnosis schema (`incident-zero/diagnosis/v1`) |
+| `incident/render.py`, `api.py`, `cli.py` | Demo surfaces for observation and diagnosis |
+| `tests/` | Unit tests (mocked), Brain tests, live smoke tests, and scenario harness |
 
 No organizer report schema was found in the repository. The report uses
 `schema_version: incident-zero/observation/v1` and should be mapped to the
